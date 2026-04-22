@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "316116460437",
+    "firebase_url": "https://trimbo-66bf9-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "trimbo-66bf9",
+    "storage_bucket": "trimbo-66bf9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:316116460437:android:e3d45da8c9add841660c9c",
+        "android_client_info": {
+          "package_name": "com.trimbo.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "316116460437-8jbthdg1ui81bo22vo0if9fuu1oc00qq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.trimbo.app",
+            "certificate_hash": "106c43bba1f1e8380457cdd685925b2e81ddc6da"
+          }
+        },
+        {
+          "client_id": "316116460437-0h13cc5m56rc7g84dgeu9in7a2dl3n73.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCe4VgOYaoI7RXBng8SsRtpS4z-ImrIajo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "316116460437-0h13cc5m56rc7g84dgeu9in7a2dl3n73.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

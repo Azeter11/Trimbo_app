@@ -1,0 +1,61 @@
+name: trimbo
+description: Aplikasi pembelajaran berbasis tugas (Assignment-Based Learning)
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management & Navigation
+  get: ^4.6.6
+
+  # Firebase
+  firebase_core: ^2.27.0
+  firebase_auth: ^4.17.0
+  cloud_firestore: ^4.15.0
+  firebase_messaging: ^14.7.0
+  google_sign_in: ^6.2.1
+
+  # UI & Styling
+  flutter_screenutil: ^5.9.0
+  google_fonts: ^6.1.0
+  fl_chart: ^0.68.0
+
+  # Utilitas
+  intl: ^0.19.0
+  shared_preferences: ^2.2.2
+  connectivity_plus: ^6.0.3
+
+  # Export File
+  pdf: ^3.11.0
+  excel: ^4.0.2
+  path_provider: ^2.1.2
+  share_plus: ^8.0.2
+
+  # Notifikasi Lokal
+  flutter_local_notifications: ^17.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  change_app_package_name: ^1.1.0
+  # Tambahkan library ini untuk generate icon
+  flutter_launcher_icons: ^0.13.1
+
+# Konfigurasi Icon Aplikasi
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icons/TrimboIcon.png"
+  min_sdk_android: 21 # SDK minimum untuk dukungan icon adaptif
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/TrimboIcon.png
