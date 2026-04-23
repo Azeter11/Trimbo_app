@@ -13,6 +13,8 @@ import '../../teacher/models/question_model.dart';
 import '../../../services/firestore_service.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../app/routes.dart';
+import 'student_controller.dart';
+
 
 class ExamController extends GetxController with WidgetsBindingObserver {
   final FirestoreService _firestoreService = Get.find<FirestoreService>();
@@ -320,6 +322,11 @@ class ExamController extends GetxController with WidgetsBindingObserver {
         return;
       }
 
+      // Refresh data dashboard siswa agar status tugas terupdate
+      if (Get.isRegistered<StudentController>()) {
+        await Get.find<StudentController>().loadDashboardData();
+      }
+
       // Hitung hasil untuk ditampilkan di result screen
       int correct = 0;
       for (int i = 0; i < questions.length; i++) {
@@ -408,6 +415,11 @@ class ExamController extends GetxController with WidgetsBindingObserver {
           warningCount: warningCount.value,
           isAutoSubmitted: true,
         );
+
+        // Refresh data dashboard siswa agar status tugas terupdate
+        if (Get.isRegistered<StudentController>()) {
+          await Get.find<StudentController>().loadDashboardData();
+        }
       } catch (_) {
         // Tetap navigasi keluar meski error Firestore
       } finally {
@@ -442,6 +454,8 @@ class ExamController extends GetxController with WidgetsBindingObserver {
       final loadedQuestions = await _firestoreService.getAssignmentQuestions(
         assignment.id,
       );
+      // Mengacak urutan soal untuk setiap user
+      loadedQuestions.shuffle();
       questions.assignAll(loadedQuestions);
     } finally {
       isLoadingQuestions.value = false;

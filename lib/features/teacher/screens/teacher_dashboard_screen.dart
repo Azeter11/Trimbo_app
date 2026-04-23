@@ -167,9 +167,9 @@ class TeacherDashboardScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(AppStrings.recentClasses, style: AppStyles.headingS),
-              if (classes.length > 3)
+              if (classes.length > 5)
                 TextButton(
-                  onPressed: () {}, // TODO: halaman semua kelas
+                  onPressed: () => Get.toNamed(AppRoutes.teacherClassList),
                   child: Text(
                     AppStrings.viewAll,
                     style: AppStyles.labelS.copyWith(color: AppColors.primary),
@@ -202,8 +202,8 @@ class TeacherDashboardScreen extends StatelessWidget {
               ),
             )
           else
-            // Tampilkan maksimal 3 kelas terbaru
-            ...classes.take(3).map((classData) => GestureDetector(
+            // Tampilkan maksimal 5 kelas terbaru
+            ...classes.take(5).map((classData) => GestureDetector(
                   onTap: () => controller.openClassManagement(classData),
                   child: Container(
                     margin: EdgeInsets.only(bottom: 12.h),

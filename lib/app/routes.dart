@@ -39,4 +39,5 @@ class AppRoutes {
   static const String studentGrades = '/teacher/student-grades';
   static const String analytics = '/teacher/analytics';
   static const String teacherProfile = '/teacher/profile';
+  static const String teacherClassList = '/teacher/classes';
 }

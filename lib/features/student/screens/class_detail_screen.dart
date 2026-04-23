@@ -198,46 +198,51 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
     return RefreshIndicator(
       onRefresh: _loadAssignments,
       color: AppColors.primary,
-      child: ListView.builder(
-        padding: EdgeInsets.all(16.w),
-        itemCount: _assignments.length,
-        itemBuilder: (context, index) {
-          final assignment = _assignments[index];
-          final hasSubmitted = controller.hasSubmitted(assignment.id);
-          final isExpired = assignment.isExpired;
+      child: Obx(() {
+        // Trigger rebuild saat ada perubahan nilai/submission di controller
+        final _ = controller.mySubmissions.length;
+        
+        return ListView.builder(
+          padding: EdgeInsets.all(16.w),
+          itemCount: _assignments.length,
+          itemBuilder: (context, index) {
+            final assignment = _assignments[index];
+            final hasSubmitted = controller.hasSubmitted(assignment.id);
+            final isExpired = assignment.isExpired;
 
-          return _AssignmentCard(
-            assignment: assignment,
-            hasSubmitted: hasSubmitted,
-            isExpired: isExpired,
-            onTap: () {
-              if (hasSubmitted) {
-                // Sudah dikerjakan → tampilkan nilai
-                final submission = controller.getSubmission(assignment.id);
-                if (submission != null) {
+            return _AssignmentCard(
+              assignment: assignment,
+              hasSubmitted: hasSubmitted,
+              isExpired: isExpired,
+              onTap: () {
+                if (hasSubmitted) {
+                  // Sudah dikerjakan → tampilkan nilai
+                  final submission = controller.getSubmission(assignment.id);
+                  if (submission != null) {
+                    Get.snackbar(
+                      'Sudah Dikerjakan',
+                      'Nilai Anda: ${submission.score.toStringAsFixed(1)} (${submission.grade})',
+                      backgroundColor: AppColors.success,
+                      colorText: Colors.white,
+                    );
+                  }
+                } else if (isExpired) {
+                  // Deadline lewat
                   Get.snackbar(
-                    'Sudah Dikerjakan',
-                    'Nilai Anda: ${submission.score.toStringAsFixed(1)} (${submission.grade})',
-                    backgroundColor: AppColors.success,
+                    'Waktu Habis',
+                    'Batas waktu pengumpulan sudah lewat',
+                    backgroundColor: AppColors.error,
                     colorText: Colors.white,
                   );
+                } else {
+                  // Buka ujian
+                  controller.openExam(assignment);
                 }
-              } else if (isExpired) {
-                // Deadline lewat
-                Get.snackbar(
-                  'Waktu Habis',
-                  'Batas waktu pengumpulan sudah lewat',
-                  backgroundColor: AppColors.error,
-                  colorText: Colors.white,
-                );
-              } else {
-                // Buka ujian
-                controller.openExam(assignment);
-              }
-            },
-          );
-        },
-      ),
+              },
+            );
+          },
+        );
+      }),
     );
   }
 

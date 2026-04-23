@@ -42,6 +42,7 @@ import '../features/teacher/screens/create_question_screen.dart';
 import '../features/teacher/screens/student_grades_screen.dart';
 import '../features/teacher/screens/analytics_screen.dart';
 import '../features/teacher/screens/teacher_profile_screen.dart';
+import '../features/teacher/screens/teacher_class_list_screen.dart';
 
 class TrimboApp extends StatelessWidget {
   const TrimboApp({super.key});
@@ -194,6 +195,11 @@ class TrimboApp extends StatelessWidget {
             GetPage(
               name: AppRoutes.teacherProfile,
               page: () => const TeacherProfileScreen(),
+              transition: Transition.rightToLeft,
+            ),
+            GetPage(
+              name: AppRoutes.teacherClassList,
+              page: () => const TeacherClassListScreen(),
               transition: Transition.rightToLeft,
             ),
           ],
