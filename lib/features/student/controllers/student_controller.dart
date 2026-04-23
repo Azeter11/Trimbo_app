@@ -9,6 +9,7 @@ import '../../auth/controllers/auth_controller.dart';
 import '../../../services/firestore_service.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../app/routes.dart';
+import 'package:flutter/material.dart';
 
 class StudentController extends GetxController {
   final FirestoreService _firestoreService = Get.find<FirestoreService>();
@@ -50,7 +51,7 @@ class StudentController extends GetxController {
     if (_authController.currentUser.value != null) {
       loadDashboardData();
     }
-    
+
     // Pantau perubahan user (misal: login atau refresh data profil)
     ever(_authController.currentUser, (user) {
       if (user != null) {
@@ -109,7 +110,6 @@ class StudentController extends GetxController {
   // JOIN CLASS
   // ========================
 
-  /// Bergabung ke kelas menggunakan kode kelas.
   Future<String?> joinClass(String code) async {
     isLoading.value = true;
 
@@ -122,16 +122,56 @@ class StudentController extends GetxController {
         classCode: code.trim().toUpperCase(),
       );
 
-      if (result.error != null) return result.error;
+      // 1. JIKA GAGAL BERGABUNG
+      if (result.error != null) {
+        Get.snackbar(
+          'Gagal Bergabung',
+          result.error ?? 'Terjadi kesalahan.',
+          backgroundColor: Colors.red.withOpacity(0.9),
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+          margin: const EdgeInsets.all(16),
+          icon: const Icon(Icons.error_outline, color: Colors.white),
+        );
+        return result.error;
+      }
 
-      // Tambahkan kelas baru ke list lokal
+      // 2. JIKA BERHASIL: Update data lokal
       myClasses.add(result.classData!);
-
-      // Refresh tugas
       await _loadAllAssignments(myClasses);
 
-      return null; // null = sukses
+      // 3. TAMPILKAN SNACKBAR BERHASIL
+      Get.snackbar(
+        'Berhasil!',
+        'Anda telah bergabung ke kelas ${result.classData?.name ?? ""}',
+        backgroundColor: Colors.green.withOpacity(0.9),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 2),
+        icon: const Icon(Icons.check_circle_outline, color: Colors.white),
+      );
 
+      // 4. PINDAH KE HALAMAN DETAIL KELAS SECARA OTOMATIS
+      // Kita set selectedClass agar data di halaman detail sinkron
+      selectedClass.value = result.classData;
+
+      // Gunakan Get.offNamed agar halaman 'Join Class' ditutup dan digantikan halaman Detail
+      Get.offNamed(
+          AppRoutes.classDetail,
+          arguments: result.classData
+      );
+
+      return null;
+
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Terjadi kesalahan sistem.',
+        backgroundColor: Colors.red.withOpacity(0.9),
+        colorText: Colors.white,
+      );
+      return e.toString();
     } finally {
       isLoading.value = false;
     }
