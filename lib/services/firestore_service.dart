@@ -330,6 +330,7 @@ class FirestoreService {
   /// Simpan jawaban siswa setelah selesai ujian.
   Future<String?> submitAnswers({
     required String assignmentId,
+    required String assignmentTitle,
     required String studentId,
     required String studentName,
     required Map<int, String> answers,
@@ -358,6 +359,7 @@ class FirestoreService {
 
       await _db.collection(_submissionsCollection).add({
         'assignmentId': assignmentId,
+        'assignmentTitle': assignmentTitle,
         'studentId': studentId,
         'studentName': studentName,
         'answers': answers.map((k, v) => MapEntry(k.toString(), v)),

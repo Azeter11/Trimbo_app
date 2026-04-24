@@ -22,12 +22,13 @@ class ExportService {
     required List<SubmissionModel> submissions,
     required String assignmentTitle,
     required String className,
+    bool isStudentReport = false,
   }) async {
     try {
       // Buat dokumen PDF baru
       final pdf = pw.Document();
 
-      // Hitung rata-rata kelas
+      // Hitung rata-rata
       final scores = submissions.map((s) => s.score).toList();
       final average = Helpers.calculateAverage(scores);
 
@@ -51,7 +52,7 @@ class ExportService {
               ),
               pw.SizedBox(height: 4),
               pw.Text(
-                'Tugas: $assignmentTitle',
+                isStudentReport ? 'Nama: $assignmentTitle' : 'Tugas: $assignmentTitle',
                 style: const pw.TextStyle(fontSize: 12),
               ),
               pw.Text(
@@ -80,11 +81,11 @@ class ExportService {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text(
-                    'Rata-rata Kelas: ${Helpers.formatScore(average)}',
+                    'Rata-rata: ${Helpers.formatScore(average)}',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                   ),
                   pw.Text(
-                    'Jumlah Siswa: ${submissions.length}',
+                    isStudentReport ? 'Jumlah Tugas: ${submissions.length}' : 'Jumlah Siswa: ${submissions.length}',
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                   ),
                 ],
@@ -94,12 +95,12 @@ class ExportService {
 
             // Tabel nilai
             pw.TableHelper.fromTextArray(
-              headers: ['No', 'Nama Siswa', 'Nilai', 'Benar', 'Salah', 'Grade'],
+              headers: ['No', isStudentReport ? 'Nama Tugas' : 'Nama Siswa', 'Nilai', 'Benar', 'Salah', 'Grade'],
               data: List.generate(submissions.length, (index) {
                 final s = submissions[index];
                 return [
                   '${index + 1}',
-                  s.studentName,
+                  isStudentReport ? s.assignmentTitle : s.studentName,
                   Helpers.formatScore(s.score),
                   '${s.correctCount}',
                   '${s.wrongCount}',
@@ -135,7 +136,6 @@ class ExportService {
       await file.writeAsBytes(await pdf.save());
 
       // Bagikan file via share sheet
-      // share_plus akan memberikan opsi "Save to device" bagi pengguna.
       await Share.shareXFiles(
         [XFile(file.path)],
         subject: 'Laporan Nilai - $assignmentTitle',
@@ -158,6 +158,7 @@ class ExportService {
     required List<SubmissionModel> submissions,
     required String assignmentTitle,
     required String className,
+    bool isStudentReport = false,
   }) async {
     try {
       // Buat workbook Excel baru
@@ -177,7 +178,7 @@ class ExportService {
       // Row 4 = kosong
 
       // Header kolom tabel (row 5)
-      final headers = ['No', 'Nama Siswa', 'Nilai', 'Jawaban Benar', 'Jawaban Salah', 'Grade', 'Waktu Submit'];
+      final headers = ['No', isStudentReport ? 'Nama Tugas' : 'Nama Siswa', 'Nilai', 'Jawaban Benar', 'Jawaban Salah', 'Grade', 'Waktu Submit'];
       for (int i = 0; i < headers.length; i++) {
         final cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 4));
         cell.value = TextCellValue(headers[i]);
@@ -193,7 +194,7 @@ class ExportService {
         sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIndex))
             .value = IntCellValue(i + 1);
         sheet.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIndex))
-            .value = TextCellValue(s.studentName);
+            .value = TextCellValue(isStudentReport ? s.assignmentTitle : s.studentName);
         sheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: rowIndex))
             .value = DoubleCellValue(s.score);
         sheet.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: rowIndex))
@@ -205,6 +206,11 @@ class ExportService {
         sheet.cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: rowIndex))
             .value = TextCellValue(Helpers.formatDateTime(s.submittedAt));
       }
+
+      // Tambahkan summary di bawah (opsional)
+      final summaryRow = submissions.length + 6;
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: summaryRow)).value = 
+          TextCellValue(isStudentReport ? 'Total Tugas: ${submissions.length}' : 'Total Siswa: ${submissions.length}');
 
       // Hapus sheet default yang kosong
       excel.delete('Sheet1');

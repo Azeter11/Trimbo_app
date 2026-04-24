@@ -4,6 +4,7 @@
 class SubmissionModel {
   final String id;                    // ID dokumen Firestore
   final String assignmentId;          // ID tugas yang dikerjakan
+  final String assignmentTitle;       // Nama tugas
   final String studentId;             // UID siswa
   final String studentName;           // Nama siswa
   final Map<int, String> answers;     // Jawaban: {nomor_soal: 'A'/'B'/'C'/'D'}
@@ -18,6 +19,7 @@ class SubmissionModel {
   const SubmissionModel({
     required this.id,
     required this.assignmentId,
+    required this.assignmentTitle,
     required this.studentId,
     required this.studentName,
     required this.answers,
@@ -49,6 +51,7 @@ class SubmissionModel {
     return SubmissionModel(
       id: id,
       assignmentId: map['assignmentId'] ?? '',
+      assignmentTitle: map['assignmentTitle'] ?? (map['assignmentId'] != null ? 'Tugas ${map['assignmentId'].toString().substring(0, 6)}' : 'Tugas'),
       studentId: map['studentId'] ?? '',
       studentName: map['studentName'] ?? '',
       answers: answers,
@@ -72,6 +75,7 @@ class SubmissionModel {
 
     return {
       'assignmentId': assignmentId,
+      'assignmentTitle': assignmentTitle,
       'studentId': studentId,
       'studentName': studentName,
       'answers': answersForDb,

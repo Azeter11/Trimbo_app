@@ -98,6 +98,7 @@ class GradeReportScreen extends StatelessWidget {
                           submissions: controller.mySubmissions,
                           assignmentTitle: 'Laporan Keseluruhan',
                           className: 'Laporan Pribadi',
+                          isStudentReport: true,
                         );
                         if (error != null) {
                           Get.snackbar('Error', error,
@@ -120,6 +121,7 @@ class GradeReportScreen extends StatelessWidget {
                           submissions: controller.mySubmissions,
                           assignmentTitle: 'Laporan Keseluruhan',
                           className: 'Laporan Pribadi',
+                          isStudentReport: true,
                         );
                         if (error != null) {
                           Get.snackbar('Error', error,
@@ -318,7 +320,7 @@ class _GradeCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Tugas ${submission.assignmentId.substring(0, 6)}',
+                  submission.assignmentTitle,
                   style: AppStyles.labelL,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

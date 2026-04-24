@@ -15,7 +15,6 @@ import '../../../core/utils/helpers.dart';
 import '../../../app/routes.dart';
 import 'student_controller.dart';
 
-
 class ExamController extends GetxController with WidgetsBindingObserver {
   final FirestoreService _firestoreService = Get.find<FirestoreService>();
 
@@ -308,6 +307,7 @@ class ExamController extends GetxController with WidgetsBindingObserver {
     try {
       final error = await _firestoreService.submitAnswers(
         assignmentId: assignment.id,
+        assignmentTitle: assignment.title,
         studentId: student.uid,
         studentName: student.fullName,
         answers: Map<int, String>.from(answers),
@@ -408,9 +408,10 @@ class ExamController extends GetxController with WidgetsBindingObserver {
         // Kirim submission ke Firestore dengan skor paksa 0
         await _firestoreService.submitAnswers(
           assignmentId: assignment.id,
+          assignmentTitle: assignment.title,
           studentId: student.uid,
           studentName: student.fullName,
-          answers: const {},       // kosongkan jawaban → skor 0
+          answers: const {}, // kosongkan jawaban → skor 0
           questions: questions,
           warningCount: warningCount.value,
           isAutoSubmitted: true,
