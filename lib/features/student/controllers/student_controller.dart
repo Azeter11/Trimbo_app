@@ -197,6 +197,57 @@ class StudentController extends GetxController {
     }
   }
 
+  /// Keluar dari kelas.
+  Future<void> leaveClass(ClassModel classData) async {
+    final studentId = _authController.currentUser.value?.uid;
+    if (studentId == null) return;
+
+    // Tampilkan dialog konfirmasi
+    final confirm = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Keluar Kelas'),
+        content: Text('Apakah Anda yakin ingin keluar dari kelas ${classData.name}? Riwayat nilai Anda tetap tersimpan, namun Anda tidak bisa mengakses tugas di kelas ini lagi.'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Get.back(result: true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Keluar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    isLoading.value = true;
+    try {
+      final error = await _firestoreService.leaveClass(
+        studentId: studentId,
+        classId: classData.id,
+      );
+
+      if (error != null) {
+        Get.snackbar('Gagal', error, backgroundColor: Colors.red, colorText: Colors.white);
+      } else {
+        Get.back(); // Kembali dari screen detail kelas
+        Get.snackbar(
+          'Berhasil',
+          'Anda telah keluar dari kelas ${classData.name}',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Terjadi kesalahan sistem', backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   // ========================
   // CEK STATUS TUGAS
   // ========================

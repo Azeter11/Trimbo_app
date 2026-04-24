@@ -120,6 +120,22 @@ class FirestoreService {
     }
   }
 
+  /// Siswa keluar dari kelas.
+  Future<String?> leaveClass({
+    required String studentId,
+    required String classId,
+  }) async {
+    try {
+      // Hapus studentId dari array studentIds di Firestore
+      await _db.collection(_classesCollection).doc(classId).update({
+        'studentIds': FieldValue.arrayRemove([studentId]),
+      });
+      return null;
+    } catch (e) {
+      return 'Gagal keluar dari kelas. Coba lagi.';
+    }
+  }
+
   /// Ambil semua kelas yang dimiliki guru berdasarkan teacherId.
   Future<List<ClassModel>> getTeacherClasses(String teacherId) async {
     try {
@@ -258,6 +274,53 @@ class FirestoreService {
       return null;
     } catch (e) {
       return 'Gagal menerbitkan tugas. Coba lagi.';
+    }
+  }
+
+  /// Hapus tugas beserta soal-soalnya.
+  Future<String?> deleteAssignment(String assignmentId) async {
+    try {
+      // 1. Hapus semua soal yang terkait
+      final questionsQuery = await _db
+          .collection(_questionsCollection)
+          .where('assignmentId', isEqualTo: assignmentId)
+          .get();
+          
+      final batch = _db.batch();
+      for (var doc in questionsQuery.docs) {
+        batch.delete(doc.reference);
+      }
+      
+      // 2. Hapus dokumen tugas itu sendiri
+      batch.delete(_db.collection(_assignmentsCollection).doc(assignmentId));
+      
+      // Jalankan batch delete
+      await batch.commit();
+      return null;
+    } catch (e) {
+      return 'Gagal menghapus tugas. Coba lagi.';
+    }
+  }
+
+  /// Hapus kelas beserta tugas-tugas di dalamnya.
+  Future<String?> deleteClass(String classId) async {
+    try {
+      // 1. Ambil semua tugas di kelas ini
+      final assignmentsQuery = await _db
+          .collection(_assignmentsCollection)
+          .where('classId', isEqualTo: classId)
+          .get();
+          
+      // 2. Hapus masing-masing tugas (termasuk soal-soalnya)
+      for (var doc in assignmentsQuery.docs) {
+        await deleteAssignment(doc.id);
+      }
+      
+      // 3. Hapus kelas itu sendiri
+      await _db.collection(_classesCollection).doc(classId).delete();
+      return null;
+    } catch (e) {
+      return 'Gagal menghapus kelas. Coba lagi.';
     }
   }
 

@@ -52,6 +52,16 @@ class _ClassManagementScreenState extends State<ClassManagementScreen>
             pinned: true,
             backgroundColor: AppColors.secondary,
             iconTheme: const IconThemeData(color: Colors.white),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+                tooltip: 'Hapus Kelas',
+                onPressed: () {
+                  final currentClass = controller.selectedClass.value ?? classData;
+                  controller.deleteClass(currentClass);
+                },
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: Obx(() {
                 final currentClass = controller.selectedClass.value ?? classData;
@@ -224,6 +234,17 @@ class _ClassManagementScreenState extends State<ClassManagementScreen>
                               style: AppStyles.labelS.copyWith(
                                   color: AppColors.textSecondary)),
                         ),
+                      SizedBox(width: 8.w),
+                      GestureDetector(
+                        onTap: () {
+                          controller.deleteAssignment(assignment);
+                        },
+                        child: Icon(
+                          Icons.delete_outline_rounded,
+                          color: AppColors.error,
+                          size: 20.sp,
+                        ),
+                      ),
                     ],
                   ),
                   SizedBox(height: 8.h),

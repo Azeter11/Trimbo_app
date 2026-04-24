@@ -101,72 +101,76 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) => [
-          // ====== SLIVER APP BAR ======
-          SliverAppBar(
-            expandedHeight: 160.h,
-            pinned: true,
-            backgroundColor: AppColors.primary,
-            iconTheme: const IconThemeData(color: Colors.white),
-            flexibleSpace: FlexibleSpaceBar(
-              background: Obx(() {
-                final classData = controller.selectedClass.value ?? initialClassData;
-                return Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [AppColors.primary, AppColors.secondary],
+      body: Obx(() => LoadingOverlay(
+        isLoading: controller.isLoading.value,
+        message: 'Sedang memproses...',
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            // ====== SLIVER APP BAR ======
+            SliverAppBar(
+              expandedHeight: 160.h,
+              pinned: true,
+              backgroundColor: AppColors.primary,
+              iconTheme: const IconThemeData(color: Colors.white),
+              flexibleSpace: FlexibleSpaceBar(
+                background: Obx(() {
+                  final classData = controller.selectedClass.value ?? initialClassData;
+                  return Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [AppColors.primary, AppColors.secondary],
+                      ),
                     ),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(24.w, 80.h, 24.w, 20.h),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          classData.name,
-                          style: AppStyles.headingM.copyWith(color: Colors.white),
-                        ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          'Oleh ${classData.teacherName}',
-                          style: AppStyles.bodyM.copyWith(color: Colors.white70),
-                        ),
-                      ],
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(24.w, 80.h, 24.w, 20.h),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            classData.name,
+                            style: AppStyles.headingM.copyWith(color: Colors.white),
+                          ),
+                          SizedBox(height: 4.h),
+                          Text(
+                            'Oleh ${classData.teacherName}',
+                            style: AppStyles.bodyM.copyWith(color: Colors.white70),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                }),
+              ),
+              bottom: TabBar(
+                controller: _tabController,
+                indicatorColor: Colors.white,
+                indicatorWeight: 3,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white60,
+                labelStyle: AppStyles.labelL.copyWith(fontSize: 13.sp),
+                tabs: const [
+                  Tab(text: 'Daftar Tugas'),
+                  Tab(text: 'Info Kelas'),
+                ],
+              ),
             ),
-            bottom: TabBar(
-              controller: _tabController,
-              indicatorColor: Colors.white,
-              indicatorWeight: 3,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white60,
-              labelStyle: AppStyles.labelL.copyWith(fontSize: 13.sp),
-              tabs: const [
-                Tab(text: 'Daftar Tugas'),
-                Tab(text: 'Info Kelas'),
-              ],
-            ),
-          ),
-        ],
-
-        // ====== BODY (TAB VIEWS) ======
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            // Tab 1: Daftar Tugas
-            _buildAssignmentsTab(controller),
-
-            // Tab 2: Info Kelas
-            _buildInfoTab(controller, initialClassData),
           ],
+  
+          // ====== BODY (TAB VIEWS) ======
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              // Tab 1: Daftar Tugas
+              _buildAssignmentsTab(controller),
+  
+              // Tab 2: Info Kelas
+              _buildInfoTab(controller, initialClassData),
+            ],
+          ),
         ),
-      ),
+      )),
     );
   }
 
@@ -292,6 +296,29 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
               content: '${classData.totalStudents} siswa',
               icon: Icons.people_outlined,
             ),
+
+            SizedBox(height: 32.h),
+
+            // Tombol Keluar Kelas
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => controller.leaveClass(classData),
+                icon: const Icon(Icons.exit_to_app_rounded, color: AppColors.error),
+                label: Text(
+                  'Keluar Dari Kelas',
+                  style: AppStyles.labelL.copyWith(color: AppColors.error),
+                ),
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  side: const BorderSide(color: AppColors.error),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 20.h),
           ],
         ),
       );

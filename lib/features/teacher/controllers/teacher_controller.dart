@@ -200,6 +200,105 @@ class TeacherController extends GetxController {
   }
 
   // ========================
+  // HAPUS KELAS & TUGAS
+  // ========================
+
+  /// Hapus kelas dengan konfirmasi.
+  Future<void> deleteClass(ClassModel classData) async {
+    final confirm = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Hapus Kelas'),
+        content: Text(
+            'Apakah Anda yakin ingin menghapus kelas ${classData.name}? Semua tugas di dalamnya akan ikut terhapus (histori nilai siswa tetap aman). Tindakan ini tidak dapat dibatalkan.'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Get.back(result: true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    isLoading.value = true;
+    try {
+      final error = await _firestoreService.deleteClass(classData.id);
+
+      if (error != null) {
+        Get.snackbar('Gagal', error,
+            backgroundColor: Colors.red, colorText: Colors.white);
+      } else {
+        Get.back(); // Kembali ke halaman sebelumnya
+        Get.snackbar(
+          'Berhasil',
+          'Kelas ${classData.name} berhasil dihapus',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Terjadi kesalahan sistem',
+          backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// Hapus tugas dengan konfirmasi.
+  Future<void> deleteAssignment(AssignmentModel assignment) async {
+    final confirm = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Hapus Tugas'),
+        content: Text(
+            'Apakah Anda yakin ingin menghapus tugas ${assignment.title}? (Histori nilai siswa tetap aman). Tindakan ini tidak dapat dibatalkan.'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Get.back(result: true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    isLoading.value = true;
+    try {
+      final error = await _firestoreService.deleteAssignment(assignment.id);
+
+      if (error != null) {
+        Get.snackbar('Gagal', error,
+            backgroundColor: Colors.red, colorText: Colors.white);
+      } else {
+        // Jika sedang di halaman detail tugas, mungkin perlu Get.back() tapi tidak bisa dipastikan di sini
+        // Biasanya controller dipanggil dari list atau detail. Kalau dari detail, kita perlu balik.
+        Get.snackbar(
+          'Berhasil',
+          'Tugas ${assignment.title} berhasil dihapus',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Terjadi kesalahan sistem',
+          backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // ========================
   // NAVIGASI
   // ========================
 
