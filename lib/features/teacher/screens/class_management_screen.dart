@@ -53,57 +53,60 @@ class _ClassManagementScreenState extends State<ClassManagementScreen>
             backgroundColor: AppColors.secondary,
             iconTheme: const IconThemeData(color: Colors.white),
             flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.secondary, AppColors.primary],
+              background: Obx(() {
+                final currentClass = controller.selectedClass.value ?? classData;
+                return Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.secondary, AppColors.primary],
+                    ),
                   ),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(24.w, 80.h, 24.w, 16.h),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(classData.name,
-                          style: AppStyles.headingM
-                              .copyWith(color: Colors.white)),
-                      SizedBox(height: 4.h),
-                      Text(classData.description,
-                          style: AppStyles.bodyS
-                              .copyWith(color: Colors.white70),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis),
-                      SizedBox(height: 10.h),
-                      // Kode kelas + tombol copy
-                      Row(
-                        children: [
-                          Icon(Icons.vpn_key_rounded,
-                              size: 14.sp, color: Colors.white70),
-                          SizedBox(width: 6.w),
-                          Text(classData.classCode,
-                              style: AppStyles.labelL.copyWith(
-                                  color: Colors.white,
-                                  letterSpacing: 2)),
-                          SizedBox(width: 8.w),
-                          GestureDetector(
-                            onTap: () {
-                              Clipboard.setData(
-                                  ClipboardData(text: classData.classCode));
-                              Get.snackbar('Disalin!',
-                                  'Kode kelas disalin ke clipboard',
-                                  backgroundColor: AppColors.success,
-                                  colorText: Colors.white,
-                                  duration: const Duration(seconds: 2));
-                            },
-                            child: Icon(Icons.copy_rounded,
-                                size: 16.sp, color: Colors.white70),
-                          ),
-                        ],
-                      ),
-                    ],
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(24.w, 80.h, 24.w, 16.h),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(currentClass.name,
+                            style: AppStyles.headingM
+                                .copyWith(color: Colors.white)),
+                        SizedBox(height: 4.h),
+                        Text(currentClass.description,
+                            style: AppStyles.bodyS
+                                .copyWith(color: Colors.white70),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis),
+                        SizedBox(height: 10.h),
+                        // Kode kelas + tombol copy
+                        Row(
+                          children: [
+                            Icon(Icons.vpn_key_rounded,
+                                size: 14.sp, color: Colors.white70),
+                            SizedBox(width: 6.w),
+                            Text(currentClass.classCode,
+                                style: AppStyles.labelL.copyWith(
+                                    color: Colors.white,
+                                    letterSpacing: 2)),
+                            SizedBox(width: 8.w),
+                            GestureDetector(
+                              onTap: () {
+                                Clipboard.setData(
+                                    ClipboardData(text: currentClass.classCode));
+                                Get.snackbar('Disalin!',
+                                    'Kode kelas disalin ke clipboard',
+                                    backgroundColor: AppColors.success,
+                                    colorText: Colors.white,
+                                    duration: const Duration(seconds: 2));
+                              },
+                              child: Icon(Icons.copy_rounded,
+                                  size: 16.sp, color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              }),
             ),
             bottom: TabBar(
               controller: _tabController,
@@ -112,7 +115,10 @@ class _ClassManagementScreenState extends State<ClassManagementScreen>
               unselectedLabelColor: Colors.white60,
               tabs: [
                 Tab(text: AppStrings.classManagementAssignments),
-                Tab(text: '${AppStrings.classManagementStudents} (${classData.totalStudents})'),
+                Tab(child: Obx(() {
+                  final currentClass = controller.selectedClass.value ?? classData;
+                  return Text('${AppStrings.classManagementStudents} (${currentClass.totalStudents})');
+                })),
               ],
             ),
           ),
@@ -123,28 +129,31 @@ class _ClassManagementScreenState extends State<ClassManagementScreen>
             // Tab 1: Daftar Tugas
             _buildAssignmentsTab(controller, classData),
             // Tab 2: Daftar Siswa
-            _buildStudentsTab(classData),
+            _buildStudentsTab(controller, classData),
           ],
         ),
       ),
 
       // FAB buat tugas baru
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // Pastikan AssignmentController terdaftar sebelum navigasi
-          Get.put(AssignmentController());
-          Get.toNamed(AppRoutes.createAssignment, arguments: {
-            'classId': classData.id,
-            'teacherId': Get.find<AuthController>().currentUser.value?.uid,
-          });
-        },
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: Text(
-          AppStrings.createNewAssignment,
-          style: AppStyles.buttonText.copyWith(fontSize: 13.sp),
-        ),
-      ),
+      floatingActionButton: Obx(() {
+        final currentClass = controller.selectedClass.value ?? classData;
+        return FloatingActionButton.extended(
+          onPressed: () {
+            // Pastikan AssignmentController terdaftar sebelum navigasi
+            Get.put(AssignmentController());
+            Get.toNamed(AppRoutes.createAssignment, arguments: {
+              'classId': currentClass.id,
+              'teacherId': Get.find<AuthController>().currentUser.value?.uid,
+            });
+          },
+          backgroundColor: AppColors.primary,
+          icon: const Icon(Icons.add_rounded, color: Colors.white),
+          label: Text(
+            AppStrings.createNewAssignment,
+            style: AppStyles.buttonText.copyWith(fontSize: 13.sp),
+          ),
+        );
+      }),
     );
   }
 
@@ -247,73 +256,77 @@ class _ClassManagementScreenState extends State<ClassManagementScreen>
     });
   }
 
-  Widget _buildStudentsTab(ClassModel classData) {
-    if (classData.studentIds.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: EdgeInsets.all(32.w),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.people_outline_rounded,
-                  size: 64.sp, color: AppColors.textTertiary),
-              SizedBox(height: 16.h),
-              Text(AppStrings.noStudentsYet,
-                  style: AppStyles.bodyM
-                      .copyWith(color: AppColors.textSecondary)),
-              SizedBox(height: 8.h),
-              Text('Bagikan kode: ${classData.classCode}',
-                  style: AppStyles.labelL.copyWith(color: AppColors.primary)),
-            ],
-          ),
-        ),
-      );
-    }
+  Widget _buildStudentsTab(TeacherController controller, ClassModel initialClassData) {
+    return Obx(() {
+      final currentClass = controller.selectedClass.value ?? initialClassData;
 
-    return ListView.builder(
-      padding: EdgeInsets.all(16.w),
-      itemCount: classData.studentIds.length,
-      itemBuilder: (context, index) {
-        return Container(
-          margin: EdgeInsets.only(bottom: 8.h),
-          padding: EdgeInsets.all(14.w),
-          decoration: AppStyles.cardDecorationLight,
-          child: Row(
-            children: [
-              // Avatar nomor urut
-              Container(
-                width: 40.w,
-                height: 40.h,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    '${index + 1}',
-                    style: AppStyles.labelL.copyWith(color: AppColors.primary),
-                  ),
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Siswa ${index + 1}',
-                        style: AppStyles.labelL),
-                    Text(
-                        'ID: ${classData.studentIds[index].substring(0, 8)}...',
-                        style: AppStyles.bodyS),
-                  ],
-                ),
-              ),
-              Icon(Icons.person_rounded,
-                  color: AppColors.textTertiary, size: 18.sp),
-            ],
+      if (currentClass.studentIds.isEmpty) {
+        return Center(
+          child: Padding(
+            padding: EdgeInsets.all(32.w),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.people_outline_rounded,
+                    size: 64.sp, color: AppColors.textTertiary),
+                SizedBox(height: 16.h),
+                Text(AppStrings.noStudentsYet,
+                    style: AppStyles.bodyM
+                        .copyWith(color: AppColors.textSecondary)),
+                SizedBox(height: 8.h),
+                Text('Bagikan kode: ${currentClass.classCode}',
+                    style: AppStyles.labelL.copyWith(color: AppColors.primary)),
+              ],
+            ),
           ),
         );
-      },
-    );
+      }
+
+      return ListView.builder(
+        padding: EdgeInsets.all(16.w),
+        itemCount: currentClass.studentIds.length,
+        itemBuilder: (context, index) {
+          return Container(
+            margin: EdgeInsets.only(bottom: 8.h),
+            padding: EdgeInsets.all(14.w),
+            decoration: AppStyles.cardDecorationLight,
+            child: Row(
+              children: [
+                // Avatar nomor urut
+                Container(
+                  width: 40.w,
+                  height: 40.h,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${index + 1}',
+                      style: AppStyles.labelL.copyWith(color: AppColors.primary),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Siswa ${index + 1}',
+                          style: AppStyles.labelL),
+                      Text(
+                          'ID: ${currentClass.studentIds[index].substring(0, 8)}...',
+                          style: AppStyles.bodyS),
+                    ],
+                  ),
+                ),
+                Icon(Icons.person_rounded,
+                    color: AppColors.textTertiary, size: 18.sp),
+              ],
+            ),
+          );
+        },
+      );
+    });
   }
 }

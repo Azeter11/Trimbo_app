@@ -64,6 +64,30 @@ class TeacherController extends GetxController {
     ever(_authController.currentUser, (user) {
       if (user != null) {
         loadDashboardData();
+      } else {
+        myClasses.clear();
+        allAssignments.clear();
+      }
+    });
+
+    // Hitung total tugas aktif setiap kali allAssignments berubah
+    ever(allAssignments, (assignments) {
+      activeAssignmentsCount.value =
+          assignments.where((a) => !a.isExpired).length;
+    });
+
+    // Update selectedClass jika ada pembaruan dari stream myClasses
+    ever(myClasses, (classes) {
+      if (selectedClass.value != null) {
+        final updatedClass =
+            classes.firstWhereOrNull((c) => c.id == selectedClass.value!.id);
+        if (updatedClass != null &&
+            updatedClass.studentIds.length !=
+                selectedClass.value!.studentIds.length) {
+          selectedClass.value = updatedClass;
+        } else if (updatedClass != null) {
+          selectedClass.value = updatedClass;
+        }
       }
     });
   }
@@ -79,40 +103,32 @@ class TeacherController extends GetxController {
   // LOAD DATA
   // ========================
 
-  /// Muat data dashboard: semua kelas guru dan hitung statistik.
+  /// Inisialisasi stream untuk dashboard realtime.
   Future<void> loadDashboardData() async {
     final teacherId = _authController.currentUser.value?.uid;
     if (teacherId == null) return;
 
     isLoading.value = true;
     try {
-      final classes = await _firestoreService.getTeacherClasses(teacherId);
-      myClasses.assignAll(classes);
-
-      // Ambil tugas dari semua kelas
-      final List<AssignmentModel> assignments = [];
-      for (final cls in classes) {
-        final classTasks = await _firestoreService.getClassAssignments(cls.id);
-        assignments.addAll(classTasks);
-      }
-      allAssignments.assignAll(assignments);
-
-      // Hitung total tugas aktif
-      activeAssignmentsCount.value = assignments.where((a) => !a.isExpired).length;
-
+      // Bind streams for realtime updates
+      myClasses.bindStream(_firestoreService.streamTeacherClasses(teacherId));
+      allAssignments
+          .bindStream(_firestoreService.streamTeacherAssignments(teacherId));
+      await Future.delayed(const Duration(
+          milliseconds: 500)); // Untuk efek loading pada RefreshIndicator
     } catch (e) {
-      debugPrint("Error load dashboard: $e");
+      debugPrint("Error init streams: $e");
     } finally {
       isLoading.value = false;
     }
   }
 
-  /// Muat tugas untuk kelas tertentu.
-  Future<void> loadClassAssignments(String classId) async {
+  /// Muat tugas untuk kelas tertentu secara realtime.
+  void loadClassAssignments(String classId) {
     isLoading.value = true;
     try {
-      final assignments = await _firestoreService.getClassAssignments(classId);
-      classAssignments.assignAll(assignments);
+      classAssignments
+          .bindStream(_firestoreService.streamClassAssignments(classId));
     } finally {
       isLoading.value = false;
     }
@@ -122,7 +138,8 @@ class TeacherController extends GetxController {
   Future<void> loadAssignmentSubmissions(String assignmentId) async {
     isLoading.value = true;
     try {
-      final submissions = await _firestoreService.getAssignmentSubmissions(assignmentId);
+      final submissions =
+          await _firestoreService.getAssignmentSubmissions(assignmentId);
       assignmentSubmissions.assignAll(submissions);
     } finally {
       isLoading.value = false;
@@ -155,7 +172,8 @@ class TeacherController extends GetxController {
 
     try {
       final teacher = _authController.currentUser.value;
-      if (teacher == null) return (classCode: null, error: 'Sesi tidak ditemukan');
+      if (teacher == null)
+        return (classCode: null, error: 'Sesi tidak ditemukan');
 
       final result = await _firestoreService.createClass(
         teacherId: teacher.uid,
@@ -168,15 +186,14 @@ class TeacherController extends GetxController {
         return (classCode: null, error: result.error);
       }
 
-      // Tambahkan ke list lokal
-      myClasses.add(result.classData!);
+      // Karena sudah menggunakan bindStream, tidak perlu lagi menambahkan ke list lokal secara manual
+      // myClasses.add(result.classData!);
 
       // Bersihkan form
       classNameController.clear();
       classDescController.clear();
 
       return (classCode: result.classData!.classCode, error: null);
-
     } finally {
       isLoading.value = false;
     }

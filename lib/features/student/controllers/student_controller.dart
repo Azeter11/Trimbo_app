@@ -56,7 +56,26 @@ class StudentController extends GetxController {
     ever(_authController.currentUser, (user) {
       if (user != null) {
         loadDashboardData();
+      } else {
+        myClasses.clear();
+        mySubmissions.clear();
+        allAssignments.clear();
       }
+    });
+
+    // Update selectedClass jika ada pembaruan dari stream myClasses
+    ever(myClasses, (classes) {
+      if (selectedClass.value != null) {
+        final updatedClass = classes.firstWhereOrNull((c) => c.id == selectedClass.value!.id);
+        if (updatedClass != null && updatedClass.studentIds.length != selectedClass.value!.studentIds.length) {
+          selectedClass.value = updatedClass;
+        } else if (updatedClass != null) {
+           selectedClass.value = updatedClass;
+        }
+      }
+      
+      // Reload tugas saat kelas berubah (misal join kelas baru)
+      _loadAllAssignments(classes);
     });
   }
 
@@ -71,17 +90,17 @@ class StudentController extends GetxController {
       final studentId = _authController.currentUser.value?.uid;
       if (studentId == null) return;
 
-      // Ambil semua kelas yang diikuti
-      final classes = await _firestoreService.getStudentClasses(studentId);
-      myClasses.assignAll(classes);
-
-      // Ambil semua nilai/submission
+      // Bind streams for real-time updates
+      myClasses.bindStream(_firestoreService.streamStudentClasses(studentId));
+      
+      // Ambil nilai secara manual (atau bisa pakai stream jika dibuatkan di FirestoreService)
       final submissions = await _firestoreService.getStudentSubmissions(studentId);
       mySubmissions.assignAll(submissions);
 
-      // Ambil tugas dari semua kelas
-      await _loadAllAssignments(classes);
+      // _loadAllAssignments akan dipanggil otomatis oleh ever(myClasses, ...)
 
+    } catch (e) {
+      debugPrint("Error loading student dashboard: $e");
     } finally {
       isLoading.value = false;
     }
@@ -136,9 +155,10 @@ class StudentController extends GetxController {
         return result.error;
       }
 
-      // 2. JIKA BERHASIL: Update data lokal
-      myClasses.add(result.classData!);
-      await _loadAllAssignments(myClasses);
+      // 2. JIKA BERHASIL: Tidak perlu add manual ke list lokal
+      // karena sudah pakai bindStream, Firestore akan otomatis update myClasses
+      // myClasses.add(result.classData!);
+      // await _loadAllAssignments(myClasses);
 
       // 3. TAMPILKAN SNACKBAR BERHASIL
       Get.snackbar(

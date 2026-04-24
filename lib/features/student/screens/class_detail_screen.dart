@@ -69,12 +69,12 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
     final StudentController controller = Get.find<StudentController>();
 
     // Gunakan arguments atau fallback ke selectedClass dari controller
-    final ClassModel? classData = Get.arguments is ClassModel
+    final ClassModel? initialClassData = Get.arguments is ClassModel
         ? Get.arguments as ClassModel
         : controller.selectedClass.value;
 
     // Jika data tidak ada (akibat bug navigasi atau hot restart), tampilkan error placeholder
-    if (classData == null) {
+    if (initialClassData == null) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Detail Kelas'),
@@ -110,32 +110,35 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
             backgroundColor: AppColors.primary,
             iconTheme: const IconThemeData(color: Colors.white),
             flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [AppColors.primary, AppColors.secondary],
+              background: Obx(() {
+                final classData = controller.selectedClass.value ?? initialClassData;
+                return Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [AppColors.primary, AppColors.secondary],
+                    ),
                   ),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(24.w, 80.h, 24.w, 20.h),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        classData.name,
-                        style: AppStyles.headingM.copyWith(color: Colors.white),
-                      ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        'Oleh ${classData.teacherName}',
-                        style: AppStyles.bodyM.copyWith(color: Colors.white70),
-                      ),
-                    ],
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(24.w, 80.h, 24.w, 20.h),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          classData.name,
+                          style: AppStyles.headingM.copyWith(color: Colors.white),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          'Oleh ${classData.teacherName}',
+                          style: AppStyles.bodyM.copyWith(color: Colors.white70),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              }),
             ),
             bottom: TabBar(
               controller: _tabController,
@@ -160,7 +163,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
             _buildAssignmentsTab(controller),
 
             // Tab 2: Info Kelas
-            _buildInfoTab(classData),
+            _buildInfoTab(controller, initialClassData),
           ],
         ),
       ),
@@ -247,49 +250,52 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
   }
 
   /// Tab informasi kelas.
-  Widget _buildInfoTab(ClassModel classData) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(20.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Deskripsi kelas
-          _InfoSection(
-            title: 'Deskripsi',
-            content: classData.description,
-            icon: Icons.description_outlined,
-          ),
+  Widget _buildInfoTab(StudentController controller, ClassModel initialClassData) {
+    return Obx(() {
+      final classData = controller.selectedClass.value ?? initialClassData;
+      return SingleChildScrollView(
+        padding: EdgeInsets.all(20.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Deskripsi kelas
+            _InfoSection(
+              title: 'Deskripsi',
+              content: classData.description,
+              icon: Icons.description_outlined,
+            ),
 
-          SizedBox(height: 16.h),
+            SizedBox(height: 16.h),
 
-          // Kode kelas
-          _InfoSection(
-            title: AppStrings.classCode,
-            content: classData.classCode,
-            icon: Icons.vpn_key_rounded,
-            isCode: true,
-          ),
+            // Kode kelas
+            _InfoSection(
+              title: AppStrings.classCode,
+              content: classData.classCode,
+              icon: Icons.vpn_key_rounded,
+              isCode: true,
+            ),
 
-          SizedBox(height: 16.h),
+            SizedBox(height: 16.h),
 
-          // Dibuat oleh
-          _InfoSection(
-            title: AppStrings.classCreatedBy,
-            content: classData.teacherName,
-            icon: Icons.person_outlined,
-          ),
+            // Dibuat oleh
+            _InfoSection(
+              title: AppStrings.classCreatedBy,
+              content: classData.teacherName,
+              icon: Icons.person_outlined,
+            ),
 
-          SizedBox(height: 16.h),
+            SizedBox(height: 16.h),
 
-          // Jumlah siswa
-          _InfoSection(
-            title: AppStrings.classTotalStudents,
-            content: '${classData.totalStudents} siswa',
-            icon: Icons.people_outlined,
-          ),
-        ],
-      ),
-    );
+            // Jumlah siswa
+            _InfoSection(
+              title: AppStrings.classTotalStudents,
+              content: '${classData.totalStudents} siswa',
+              icon: Icons.people_outlined,
+            ),
+          ],
+        ),
+      );
+    });
   }
 }
 

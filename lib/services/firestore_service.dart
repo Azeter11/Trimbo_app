@@ -141,6 +141,36 @@ class FirestoreService {
     }
   }
 
+  /// Stream semua kelas yang dimiliki guru secara realtime.
+  Stream<List<ClassModel>> streamTeacherClasses(String teacherId) {
+    return _db
+        .collection(_classesCollection)
+        .where('teacherId', isEqualTo: teacherId)
+        .snapshots()
+        .map((snapshot) {
+      final classes = snapshot.docs
+          .map((doc) => ClassModel.fromMap(doc.data(), doc.id))
+          .toList();
+      classes.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return classes;
+    });
+  }
+
+  /// Stream semua kelas yang diikuti siswa secara realtime.
+  Stream<List<ClassModel>> streamStudentClasses(String studentId) {
+    return _db
+        .collection(_classesCollection)
+        .where('studentIds', arrayContains: studentId)
+        .snapshots()
+        .map((snapshot) {
+      final classes = snapshot.docs
+          .map((doc) => ClassModel.fromMap(doc.data(), doc.id))
+          .toList();
+      classes.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return classes;
+    });
+  }
+
   /// Ambil semua kelas yang diikuti siswa berdasarkan studentId.
   Future<List<ClassModel>> getStudentClasses(String studentId) async {
     try {
@@ -251,6 +281,38 @@ class FirestoreService {
       print('Firestore error (getClassAssignments): $e');
       return [];
     }
+  }
+
+  /// Stream semua tugas dalam sebuah kelas secara realtime.
+  Stream<List<AssignmentModel>> streamClassAssignments(String classId) {
+    return _db
+        .collection(_assignmentsCollection)
+        .where('classId', isEqualTo: classId)
+        .where('isPublished', isEqualTo: true)
+        .snapshots()
+        .map((snapshot) {
+      final assignments = snapshot.docs
+          .map((doc) => AssignmentModel.fromMap(doc.data(), doc.id))
+          .toList();
+      assignments.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return assignments;
+    });
+  }
+
+  /// Stream semua tugas yang dibuat oleh guru secara realtime.
+  Stream<List<AssignmentModel>> streamTeacherAssignments(String teacherId) {
+    return _db
+        .collection(_assignmentsCollection)
+        .where('teacherId', isEqualTo: teacherId)
+        .where('isPublished', isEqualTo: true)
+        .snapshots()
+        .map((snapshot) {
+      final assignments = snapshot.docs
+          .map((doc) => AssignmentModel.fromMap(doc.data(), doc.id))
+          .toList();
+      assignments.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return assignments;
+    });
   }
 
   // ========================
