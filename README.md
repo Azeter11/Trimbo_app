@@ -116,73 +116,54 @@ flutter run
 
 ---
 
-## 📁 Struktur Proyek
+## 📁 Struktur Proyek (Project Structure)
 
-```
+Proyek ini menggunakan arsitektur berbasis fitur (Feature-First Architecture) yang memisahkan logika, tampilan, dan data ke dalam folder fitur yang spesifik. Berikut adalah penjelasan fungsi dari struktur folder dan file di dalam proyek:
+
+### 1. Struktur Root (File Penting)
+
+File dan folder di luar folder `lib/` memiliki peran penting dalam konfigurasi dan build aplikasi:
+
+- `pubspec.yaml`: Jantung dari proyek Flutter. Berisi metadata proyek (nama, deskripsi, versi), daftar *dependencies* (library pihak ketiga seperti `get`, `firebase_core`, dsb.), *dev_dependencies* (alat bantu development), serta konfigurasi aset seperti gambar dan ikon.
+- `android/`, `ios/`, `web/`, `macos/`, `windows/`, `linux/`: Folder spesifik platform. Berisi native code dan konfigurasi build untuk masing-masing platform. (misalnya: file `AndroidManifest.xml` ada di dalam folder `android/`).
+- `analysis_options.yaml`: File konfigurasi linting Dart. Digunakan untuk menentukan aturan penulisan kode agar seragam dan mendeteksi potensi error (best practices).
+- `assets/`: Folder tempat menyimpan sumber daya statis seperti gambar, ikon, dan font lokal.
+
+### 2. Struktur Folder `lib/` (Kode Utama)
+
+Seluruh logika bisnis, tampilan, dan integrasi aplikasi berada di folder `lib/`. 
+
+```text
 lib/
-├── main.dart                    # Entry point
-├── app/
-│   ├── app.dart                 # GetMaterialApp + semua route
-│   └── routes.dart              # Konstanta nama route
-├── core/
-│   ├── constants/
-│   │   ├── app_colors.dart      # Semua warna aplikasi
-│   │   ├── app_strings.dart     # Semua teks/label
-│   │   └── app_styles.dart      # TextStyle + ThemeData
-│   ├── utils/
-│   │   ├── validators.dart      # Validasi form
-│   │   └── helpers.dart         # Fungsi bantu (format tanggal, hitung nilai)
-│   └── widgets/
-│       ├── custom_button.dart   # PrimaryButton, OutlineButton, TextLinkButton
-│       ├── custom_textfield.dart# CustomTextField, PasswordTextField, OtpTextField
-│       └── loading_overlay.dart # LoadingOverlay, EmptyStateWidget, ErrorStateWidget
-├── features/
-│   ├── auth/
-│   │   ├── controllers/auth_controller.dart
-│   │   ├── models/user_model.dart
-│   │   └── screens/
-│   │       ├── splash_screen.dart
-│   │       ├── login_screen.dart
-│   │       ├── register_student_screen.dart
-│   │       ├── register_teacher_screen.dart
-│   │       ├── otp_screen.dart
-│   │       └── forgot_password_screen.dart
-│   ├── student/
-│   │   ├── controllers/
-│   │   │   ├── student_controller.dart
-│   │   │   └── exam_controller.dart    # ⭐ Anti-cheat, timer, auto-submit
-│   │   ├── models/
-│   │   │   ├── class_model.dart
-│   │   │   ├── assignment_model.dart
-│   │   │   └── submission_model.dart
-│   │   └── screens/
-│   │       ├── student_dashboard_screen.dart
-│   │       ├── join_class_screen.dart
-│   │       ├── class_detail_screen.dart
-│   │       ├── exam_screen.dart        # ⭐ Fullscreen, anti-cheat
-│   │       ├── result_screen.dart
-│   │       ├── grade_report_screen.dart
-│   │       └── student_profile_screen.dart
-│   └── teacher/
-│       ├── controllers/
-│       │   ├── teacher_controller.dart
-│       │   └── assignment_controller.dart
-│       ├── models/question_model.dart
-│       └── screens/
-│           ├── teacher_dashboard_screen.dart
-│           ├── create_class_screen.dart
-│           ├── class_management_screen.dart
-│           ├── create_assignment_screen.dart
-│           ├── create_question_screen.dart
-│           ├── student_grades_screen.dart
-│           ├── analytics_screen.dart
-│           └── teacher_profile_screen.dart
-└── services/
-    ├── firebase_auth_service.dart
-    ├── firestore_service.dart
-    ├── notification_service.dart
-    └── export_service.dart
+├── main.dart                    # Titik awal (entry point) aplikasi. Inisialisasi Firebase dan menjalankan GetMaterialApp.
+├── app/                         # Konfigurasi level aplikasi.
+│   ├── app.dart                 # Konfigurasi GetMaterialApp, tema global, dan routing awal.
+│   └── routes.dart              # Konstanta dan definisi seluruh rute/navigasi halaman (GetPages).
+├── core/                        # Komponen yang dapat digunakan ulang di seluruh aplikasi (Reusable resources).
+│   ├── constants/               # Nilai konstan: warna (app_colors.dart), teks, dan style.
+│   ├── utils/                   # Fungsi bantuan/helpers: validasi form, format tanggal.
+│   └── widgets/                 # UI Komponen global: CustomButton, CustomTextField, LoadingOverlay.
+├── features/                    # Fitur-fitur utama aplikasi, dipecah menjadi modul independen.
+│   ├── auth/                    # Modul Autentikasi (Login, Register, OTP, Lupa Password).
+│   │   ├── controllers/         # Logika bisnis: AuthController mengelola state login/register.
+│   │   ├── models/              # Struktur data: UserModel.
+│   │   └── screens/             # Tampilan UI autentikasi.
+│   ├── student/                 # Modul khusus Siswa.
+│   │   ├── controllers/         # Logika siswa: StudentController, ExamController (timer, anti-cheat).
+│   │   ├── models/              # Struktur data siswa (ClassModel, AssignmentModel, SubmissionModel).
+│   │   └── screens/             # Tampilan siswa (Dashboard, ExamScreen, GradeReportScreen, dll).
+│   └── teacher/                 # Modul khusus Guru/Dosen.
+│       ├── controllers/         # Logika guru: TeacherController, AssignmentController.
+│       ├── models/              # Struktur data tambahan (QuestionModel).
+│       └── screens/             # Tampilan guru (Dashboard, CreateClass, CreateAssignment, Analytics).
+└── services/                    # Layanan terpusat untuk interaksi sistem eksternal/backend.
+    ├── firebase_auth_service.dart # Komunikasi dengan Firebase Authentication.
+    ├── firestore_service.dart     # Operasi CRUD ke Firestore Database.
+    ├── notification_service.dart  # Pengaturan push notification/notifikasi lokal.
+    └── export_service.dart        # Fungsi untuk export data ke PDF dan Excel.
 ```
+
+- **`features/`**: Folder ini sangat penting karena setiap sub-foldernya (`auth`, `student`, `teacher`) berdiri sendiri dengan arsitektur MVC/GetX (Model, View/Screen, Controller). Hal ini membuat kode lebih terstruktur, mudah dikelola, dan menghindari konflik saat bekerja dalam tim.
 
 ---
 

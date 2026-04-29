@@ -4,7 +4,11 @@
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:flutter_timezone/flutter_timezone.dart';
 import '../core/constants/app_strings.dart';
+import '../features/student/models/assignment_model.dart';
 
 class NotificationService {
   // Instansi plugin notifikasi lokal
@@ -47,6 +51,16 @@ class NotificationService {
 
     // Setup FCM untuk push notification dari server
     await _setupFCM();
+
+    // Inisialisasi Timezone untuk notifikasi terjadwal
+    await _configureLocalTimeZone();
+  }
+
+  /// Konfigurasi zona waktu lokal untuk penjadwalan notifikasi.
+  Future<void> _configureLocalTimeZone() async {
+    tz.initializeTimeZones();
+    final String timeZoneName = await FlutterTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(timeZoneName));
   }
 
   /// Minta izin notifikasi (wajib di iOS, opsional di Android 13+).
@@ -136,6 +150,51 @@ class NotificationService {
       body: '${AppStrings.notifDeadlineBody} "$assignmentTitle"',
       payload: '/student/assignments',
     );
+  }
+
+  /// Jadwalkan notifikasi peringatan 1 jam sebelum deadline.
+  Future<void> scheduleDeadlineReminder(AssignmentModel assignment) async {
+    final deadline = assignment.deadline;
+    final scheduledDate = deadline.subtract(const Duration(hours: 1));
+
+    // Jangan jadwalkan jika waktu sudah lewat
+    if (scheduledDate.isBefore(DateTime.now())) return;
+
+    // Gunakan hash dari assignment ID sebagai ID notifikasi agar unik tapi konsisten
+    final int notificationId = assignment.id.hashCode.abs();
+
+    const androidDetails = AndroidNotificationDetails(
+      'deadline_reminders',
+      'Pengingat Deadline',
+      channelDescription: 'Pengingat 1 jam sebelum deadline tugas',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+
+    const iosDetails = DarwinNotificationDetails();
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _localNotifications.zonedSchedule(
+      notificationId,
+      '⏳ Deadline Mendekat!',
+      'Tugas "${assignment.title}" harus dikumpulkan dalam 1 jam lagi!',
+      tz.TZDateTime.from(scheduledDate, tz.local),
+      details,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      payload: '/student/assignments',
+    );
+  }
+
+  /// Batalkan notifikasi terjadwal (misal jika sudah mengerjakan).
+  Future<void> cancelNotification(String assignmentId) async {
+    final int notificationId = assignmentId.hashCode.abs();
+    await _localNotifications.cancel(notificationId);
   }
 
   // ========================

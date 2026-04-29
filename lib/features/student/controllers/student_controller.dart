@@ -7,6 +7,7 @@ import '../models/assignment_model.dart';
 import '../models/submission_model.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../../services/firestore_service.dart';
+import '../../../services/notification_service.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../app/routes.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import 'package:flutter/material.dart';
 class StudentController extends GetxController {
   final FirestoreService _firestoreService = Get.find<FirestoreService>();
   final AuthController _authController = Get.find<AuthController>();
+  final NotificationService _notificationService = Get.find<NotificationService>();
 
   // ========================
   // STATE
@@ -118,6 +120,19 @@ class StudentController extends GetxController {
     }
 
     allAssignments.assignAll(assignments);
+    
+    // Jadwalkan notifikasi untuk tugas yang belum dikerjakan
+    _scheduleAssignmentReminders();
+  }
+
+  /// Jadwalkan pengingat deadline untuk semua tugas yang belum diselesaikan.
+  void _scheduleAssignmentReminders() {
+    for (final assignment in allAssignments) {
+      // Hanya jadwalkan jika belum dikerjakan dan belum lewat deadline
+      if (!hasSubmitted(assignment.id) && !assignment.isExpired) {
+        _notificationService.scheduleDeadlineReminder(assignment);
+      }
+    }
   }
 
   /// Ambil tugas untuk kelas tertentu.

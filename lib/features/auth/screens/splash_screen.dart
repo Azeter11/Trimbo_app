@@ -9,6 +9,7 @@ import '../controllers/auth_controller.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_styles.dart';
+import '../../../services/notification_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -52,6 +53,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   /// Tunggu sebentar, lalu cek status login via AuthController.
   Future<void> _initApp() async {
+    // Inisialisasi service notifikasi
+    await Get.find<NotificationService>().initialize();
+    
     await Future.delayed(const Duration(seconds: 3));
     // Panggil fungsi cek login secara eksplisit agar splash muncul saat logout juga
     Get.find<AuthController>().checkCurrentUser();

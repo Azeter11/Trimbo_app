@@ -138,9 +138,7 @@ class TeacherProfileScreen extends StatelessWidget {
               _SettingTile(
                 icon: Icons.lock_outline_rounded,
                 title: AppStrings.profileChangePassword,
-                onTap: () => Get.snackbar('Info',
-                    'Fitur ganti password tersedia di pengaturan',
-                    backgroundColor: AppColors.info, colorText: Colors.white),
+                onTap: () => _showChangePasswordDialog(context, authController),
               ),
 
               SizedBox(height: 8.h),
@@ -176,6 +174,106 @@ class TeacherProfileScreen extends StatelessWidget {
           ),
         );
       }),
+    );
+  }
+
+  /// Tampilkan dialog ganti password.
+  void _showChangePasswordDialog(
+      BuildContext context, AuthController authController) {
+    Get.dialog(
+      AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        title:
+            Text(AppStrings.profileChangePassword, style: AppStyles.headingS),
+        content: SingleChildScrollView(
+          child: Form(
+            key: authController.changePasswordFormKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: authController.currentPasswordController,
+                  obscureText: true,
+                  style: AppStyles.bodyM,
+                  decoration: InputDecoration(
+                    labelText: 'Kata Sandi Lama',
+                    labelStyle: AppStyles.bodyS,
+                    hintText: 'Masukkan kata sandi saat ini',
+                    hintStyle: AppStyles.bodyS.copyWith(color: AppColors.textTertiary),
+                  ),
+                  validator: (value) =>
+                      (value == null || value.isEmpty) ? 'Wajib diisi' : null,
+                ),
+                SizedBox(height: 16.h),
+                TextFormField(
+                  controller: authController.newPasswordController,
+                  obscureText: true,
+                  style: AppStyles.bodyM,
+                  decoration: InputDecoration(
+                    labelText: 'Kata Sandi Baru',
+                    labelStyle: AppStyles.bodyS,
+                    hintText: 'Minimal 8 karakter',
+                    hintStyle: AppStyles.bodyS.copyWith(color: AppColors.textTertiary),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Wajib diisi';
+                    if (value.length < 8) return 'Minimal 8 karakter';
+                    return null;
+                  },
+                ),
+                SizedBox(height: 16.h),
+                TextFormField(
+                  controller: authController.confirmNewPasswordController,
+                  obscureText: true,
+                  style: AppStyles.bodyM,
+                  decoration: InputDecoration(
+                    labelText: 'Konfirmasi Kata Sandi Baru',
+                    labelStyle: AppStyles.bodyS,
+                  ),
+                  validator: (value) {
+                    if (value != authController.newPasswordController.text) {
+                      return 'Konfirmasi tidak sesuai';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              authController.currentPasswordController.clear();
+              authController.newPasswordController.clear();
+              authController.confirmNewPasswordController.clear();
+              Get.back();
+            },
+            child: Text(AppStrings.buttonCancel),
+          ),
+          Obx(() => ElevatedButton(
+                onPressed: authController.isLoading.value
+                    ? null
+                    : () => authController.changePassword(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
+                child: authController.isLoading.value
+                    ? SizedBox(
+                        width: 20.w,
+                        height: 20.h,
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(AppStrings.buttonSave),
+              )),
+        ],
+      ),
+      barrierDismissible: false,
     );
   }
 }

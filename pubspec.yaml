@@ -39,6 +39,15 @@ dependencies:
   # Notifikasi Lokal
   flutter_local_notifications: ^17.0.0
 
+  # Anti-Cheat Screenshot Detection
+  screenshot_callback:
+    path: ./packages/screenshot_callback
+
+  # Timezone for scheduled notifications
+  timezone: ^0.9.2
+  flutter_timezone:
+    path: ./packages/flutter_timezone
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

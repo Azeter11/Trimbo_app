@@ -51,6 +51,12 @@ class AuthController extends GetxController {
   final TextEditingController teacherConfirmPasswordController = TextEditingController();
   final GlobalKey<FormState> teacherRegisterFormKey = GlobalKey<FormState>();
 
+  // Change Password
+  final TextEditingController currentPasswordController = TextEditingController();
+  final TextEditingController newPasswordController = TextEditingController();
+  final TextEditingController confirmNewPasswordController = TextEditingController();
+  final GlobalKey<FormState> changePasswordFormKey = GlobalKey<FormState>();
+
   // ========================
   // LIFECYCLE
   // ========================
@@ -74,6 +80,9 @@ void onInit() {
     teacherEmailController.dispose();
     teacherPasswordController.dispose();
     teacherConfirmPasswordController.dispose();
+    currentPasswordController.dispose();
+    newPasswordController.dispose();
+    confirmNewPasswordController.dispose();
     super.onClose();
   }
 
@@ -261,6 +270,42 @@ void onInit() {
 
       _showSuccessSnackbar('Link reset password telah dikirim ke email Anda.');
       return true;
+
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // ========================
+  // GANTI PASSWORD
+  // ========================
+
+  /// Proses perubahan kata sandi pengguna.
+  Future<void> changePassword() async {
+    if (!changePasswordFormKey.currentState!.validate()) return;
+
+    isLoading.value = true;
+
+    try {
+      final error = await _authService.changePassword(
+        currentPassword: currentPasswordController.text,
+        newPassword: newPasswordController.text,
+      );
+
+      if (error != null) {
+        _showErrorSnackbar(error);
+        return;
+      }
+
+      // Berhasil
+      _showSuccessSnackbar('Kata sandi berhasil diubah!');
+      
+      // Bersihkan form
+      currentPasswordController.clear();
+      newPasswordController.clear();
+      confirmNewPasswordController.clear();
+      
+      Get.back(); // Tutup dialog
 
     } finally {
       isLoading.value = false;

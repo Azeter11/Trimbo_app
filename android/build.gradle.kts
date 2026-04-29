@@ -1,9 +1,6 @@
 plugins {
-  // ...
-
-  // Add the dependency for the Google services Gradle plugin
-  id("com.google.gms.google-services") version "4.4.4" apply false
-
+    // ...
+    id("com.google.gms.google-services") version "4.4.4" apply false
 }
 
 allprojects {
@@ -25,6 +22,18 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+}
+
+// KODE FIX TERBARU
+subprojects {
+    project.plugins.configureEach {
+        if (this is com.android.build.gradle.api.AndroidBasePlugin) {
+            val android = project.extensions.getByName("android") as com.android.build.gradle.BaseExtension
+            if (android.namespace == null) {
+                android.namespace = project.group.toString()
+            }
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {

@@ -183,63 +183,103 @@ class StudentProfileScreen extends StatelessWidget {
     );
   }
 
-  void _showChangePasswordDialog(AuthController controller) {
-    final currentPassCtrl = TextEditingController();
-    final newPassCtrl = TextEditingController();
-    final confirmPassCtrl = TextEditingController();
-
+  void _showChangePasswordDialog(AuthController authController) {
     Get.dialog(
       AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(AppStrings.profileChangePassword),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: currentPassCtrl,
-              obscureText: true,
-              decoration: AppStyles.inputDecoration(label: 'Kata Sandi Lama'),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        title:
+            Text(AppStrings.profileChangePassword, style: AppStyles.headingS),
+        content: SingleChildScrollView(
+          child: Form(
+            key: authController.changePasswordFormKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: authController.currentPasswordController,
+                  obscureText: true,
+                  style: AppStyles.bodyM,
+                  decoration: InputDecoration(
+                    labelText: 'Kata Sandi Lama',
+                    labelStyle: AppStyles.bodyS,
+                    hintText: 'Masukkan kata sandi saat ini',
+                    hintStyle:
+                        AppStyles.bodyS.copyWith(color: AppColors.textTertiary),
+                  ),
+                  validator: (value) =>
+                      (value == null || value.isEmpty) ? 'Wajib diisi' : null,
+                ),
+                SizedBox(height: 16.h),
+                TextFormField(
+                  controller: authController.newPasswordController,
+                  obscureText: true,
+                  style: AppStyles.bodyM,
+                  decoration: InputDecoration(
+                    labelText: 'Kata Sandi Baru',
+                    labelStyle: AppStyles.bodyS,
+                    hintText: 'Minimal 8 karakter',
+                    hintStyle:
+                        AppStyles.bodyS.copyWith(color: AppColors.textTertiary),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Wajib diisi';
+                    if (value.length < 8) return 'Minimal 8 karakter';
+                    return null;
+                  },
+                ),
+                SizedBox(height: 16.h),
+                TextFormField(
+                  controller: authController.confirmNewPasswordController,
+                  obscureText: true,
+                  style: AppStyles.bodyM,
+                  decoration: InputDecoration(
+                    labelText: 'Konfirmasi Kata Sandi Baru',
+                    labelStyle: AppStyles.bodyS,
+                  ),
+                  validator: (value) {
+                    if (value != authController.newPasswordController.text) {
+                      return 'Konfirmasi tidak sesuai';
+                    }
+                    return null;
+                  },
+                ),
+              ],
             ),
-            SizedBox(height: 12.h),
-            TextField(
-              controller: newPassCtrl,
-              obscureText: true,
-              decoration: AppStyles.inputDecoration(label: 'Kata Sandi Baru'),
-            ),
-            SizedBox(height: 12.h),
-            TextField(
-              controller: confirmPassCtrl,
-              obscureText: true,
-              decoration:
-                  AppStyles.inputDecoration(label: 'Konfirmasi Kata Sandi Baru'),
-            ),
-          ],
+          ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (newPassCtrl.text != confirmPassCtrl.text) {
-                Get.snackbar('Error', AppStrings.errorPasswordNotMatch,
-                    backgroundColor: AppColors.error,
-                    colorText: Colors.white);
-                return;
-              }
+            onPressed: () {
+              authController.currentPasswordController.clear();
+              authController.newPasswordController.clear();
+              authController.confirmNewPasswordController.clear();
               Get.back();
-              Get.snackbar(
-                'Berhasil',
-                'Kata sandi berhasil diubah',
-                backgroundColor: AppColors.success,
-                colorText: Colors.white,
-              );
             },
-            child: const Text('Simpan'),
+            child: Text(AppStrings.buttonCancel),
           ),
+          Obx(() => ElevatedButton(
+                onPressed: authController.isLoading.value
+                    ? null
+                    : () => authController.changePassword(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
+                child: authController.isLoading.value
+                    ? SizedBox(
+                        width: 20.w,
+                        height: 20.h,
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(AppStrings.buttonSave),
+              )),
         ],
       ),
+      barrierDismissible: false,
     );
   }
 

@@ -11,12 +11,15 @@ import '../models/submission_model.dart';
 import '../../auth/models/user_model.dart';
 import '../../teacher/models/question_model.dart';
 import '../../../services/firestore_service.dart';
+import '../../../services/notification_service.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../app/routes.dart';
+import 'package:screenshot_callback/screenshot_callback.dart';
 import 'student_controller.dart';
 
 class ExamController extends GetxController with WidgetsBindingObserver {
   final FirestoreService _firestoreService = Get.find<FirestoreService>();
+  final NotificationService _notificationService = Get.find<NotificationService>();
 
   // ========================
   // DATA UJIAN
@@ -73,6 +76,9 @@ class ExamController extends GetxController with WidgetsBindingObserver {
   /// Apakah ujian di-submit otomatis (karena anti-cheat / waktu habis)
   bool _isAutoSubmitted = false;
 
+  /// Callback untuk deteksi screenshot
+  ScreenshotCallback? _screenshotCallback;
+
   // ========================
   // LIFECYCLE
   // ========================
@@ -93,6 +99,20 @@ class ExamController extends GetxController with WidgetsBindingObserver {
 
     // Ambil soal dari Firestore
     _loadQuestions();
+
+    // Inisialisasi deteksi screenshot
+    _initScreenshotDetection();
+  }
+
+  /// Setup pendengar screenshot
+  void _initScreenshotDetection() {
+    _screenshotCallback = ScreenshotCallback();
+    _screenshotCallback?.addListener(() {
+      // Hanya proses jika ujian sudah dimulai
+      if (examStarted.value) {
+        _handleCheatingAttempt(isScreenshot: true);
+      }
+    });
   }
 
   @override
@@ -100,6 +120,7 @@ class ExamController extends GetxController with WidgetsBindingObserver {
     // Bersihkan resources saat controller dihapus
     WidgetsBinding.instance.removeObserver(this);
     _countdownTimer?.cancel();
+    _screenshotCallback?.dispose();
     // Kembalikan UI system normal (non-fullscreen)
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.onClose();
@@ -118,28 +139,28 @@ class ExamController extends GetxController with WidgetsBindingObserver {
     // Deteksi saat app ke background atau pause
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
-      _handleCheatingAttempt();
+      _handleCheatingAttempt(isScreenshot: false);
     }
   }
 
-  /// Handle saat siswa ketahuan keluar dari layar ujian.
-  void _handleCheatingAttempt() {
+  /// Handle saat siswa ketahuan keluar dari layar ujian atau screenshot.
+  void _handleCheatingAttempt({required bool isScreenshot}) {
     // Jangan proses jika ujian sudah di-submit / sudah dieliminasi
     if (_isAutoSubmitted || isSubmitting.value) return;
 
     warningCount.value++;
 
     if (warningCount.value >= maxWarnings) {
-      // Sudah 3x keluar → auto-submit langsung (tanpa tunggu input user)
-      _autoSubmitDueToCheat();
+      // Sudah 3x melanggar → auto-submit langsung
+      _autoSubmitDueToCheat(reason: isScreenshot ? 'screenshot' : 'keluar layar');
     } else {
       // Tampilkan dialog peringatan
-      _showWarningDialog();
+      _showWarningDialog(isScreenshot: isScreenshot);
     }
   }
 
   /// Tampilkan dialog peringatan anti-cheat.
-  void _showWarningDialog() {
+  void _showWarningDialog({required bool isScreenshot}) {
     Get.dialog(
       WillPopScope(
         // Mencegah dialog ditutup dengan tombol back
@@ -147,12 +168,13 @@ class ExamController extends GetxController with WidgetsBindingObserver {
         child: AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('⚠️ Peringatan!'),
+          title: Text(isScreenshot ? '📸 Screenshot Terdeteksi!' : '⚠️ Peringatan!'),
           content: Text(
-            'Anda keluar dari layar ujian.\n'
-            'Waktu tetap berjalan.\n\n'
-            'Peringatan ke-${warningCount.value} dari $maxWarnings.\n'
-            'Keluar ${maxWarnings - warningCount.value}x lagi akan otomatis mengumpulkan jawaban.',
+            isScreenshot
+                ? 'Anda dilarang mengambil screenshot saat ujian.\n\n'
+                : 'Anda keluar dari layar ujian.\nWaktu tetap berjalan.\n\n'
+                    'Peringatan ke-${warningCount.value} dari $maxWarnings.\n'
+                    'Melanggar ${maxWarnings - warningCount.value}x lagi akan otomatis mengumpulkan jawaban.',
           ),
           actions: [
             ElevatedButton(
@@ -322,6 +344,9 @@ class ExamController extends GetxController with WidgetsBindingObserver {
         return;
       }
 
+      // Berhasil submit → Batalkan notifikasi pengingat deadline
+      await _notificationService.cancelNotification(assignment.id);
+
       // Refresh data dashboard siswa agar status tugas terupdate
       if (Get.isRegistered<StudentController>()) {
         await Get.find<StudentController>().loadDashboardData();
@@ -374,9 +399,9 @@ class ExamController extends GetxController with WidgetsBindingObserver {
     });
   }
 
-  /// Auto-submit karena terlalu banyak keluar layar.
+  /// Auto-submit karena melanggar aturan anti-cheat (screenshot/keluar layar).
   /// Langsung submit TANPA menunggu interaksi user agar tidak bisa dikerjakan lagi.
-  void _autoSubmitDueToCheat() {
+  void _autoSubmitDueToCheat({required String reason}) {
     if (_isAutoSubmitted || isSubmitting.value) return;
     _isAutoSubmitted = true;
 
@@ -392,7 +417,7 @@ class ExamController extends GetxController with WidgetsBindingObserver {
     // Tampilkan snackbar eliminasi
     Get.snackbar(
       '❌ Ujian Dihentikan',
-      'Anda telah keluar layar 3x. Nilai otomatis 0.',
+      'Anda melanggar aturan 3x ($reason). Nilai otomatis 0.',
       backgroundColor: const Color(0xFFEF4444),
       colorText: Colors.white,
       duration: const Duration(seconds: 3),
@@ -416,6 +441,9 @@ class ExamController extends GetxController with WidgetsBindingObserver {
           warningCount: warningCount.value,
           isAutoSubmitted: true,
         );
+
+        // Berhasil submit (cheat) → Batalkan notifikasi
+        await _notificationService.cancelNotification(assignment.id);
 
         // Refresh data dashboard siswa agar status tugas terupdate
         if (Get.isRegistered<StudentController>()) {

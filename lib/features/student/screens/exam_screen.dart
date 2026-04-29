@@ -140,7 +140,7 @@ class _PreparationPage extends StatelessWidget {
                   ),
                   _InstructionItem(
                     icon: Icons.warning_rounded,
-                    text: 'Keluar 3x → jawaban dikumpulkan otomatis',
+                    text: 'Keluar layar atau Screenshot 3x → jawaban dikumpulkan otomatis',
                   ),
                   _InstructionItem(
                     icon: Icons.save_rounded,
