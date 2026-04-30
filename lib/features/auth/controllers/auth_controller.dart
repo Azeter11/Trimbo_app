@@ -29,8 +29,7 @@ class AuthController extends GetxController {
         File file = File(pickedFile.path);
         String uid = currentUser.value!.uid;
 
-        // 1. Ganti dengan data Cloudinary Anda
-        // TODO: Masukkan Cloud Name dan Upload Preset Anda di sini!
+        // 1. data Cloudinary
         String cloudName = 'defhvwndv';
         String uploadPreset = 'trimbo';
 
