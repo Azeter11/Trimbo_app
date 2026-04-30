@@ -66,10 +66,12 @@ class StudentDashboardScreen extends StatelessWidget {
     );
   }
 
-  /// Widget header dengan sapaan dan nama siswa.
+  /// Widget header dengan sapaan, nama siswa, dan foto profil.
   Widget _buildHeader(AuthController auth, StudentController controller) {
-    final userName = auth.currentUser.value?.fullName ?? 'Siswa';
-    final initials = auth.currentUser.value?.initials ?? '?';
+    final user = auth.currentUser.value;
+    final userName = user?.fullName ?? 'Siswa';
+    final initials = user?.initials ?? '?';
+    final photoUrl = user?.photoUrl; // Ambil URL foto profil
 
     return Container(
       padding: EdgeInsets.fromLTRB(24.w, 56.h, 24.w, 24.h),
@@ -104,7 +106,7 @@ class StudentDashboardScreen extends StatelessWidget {
             ),
           ),
 
-          // Avatar inisial nama
+          // ======== BAGIAN AVATAR DI DASHBOARD ========
           GestureDetector(
             onTap: () => Get.toNamed(AppRoutes.studentProfile),
             child: Container(
@@ -115,7 +117,27 @@ class StudentDashboardScreen extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white30, width: 2),
               ),
-              child: Center(
+              // Cek apakah user sudah punya foto profil
+              child: (photoUrl != null && photoUrl.isNotEmpty)
+                  ? ClipOval(
+                child: Image.network(
+                  photoUrl,
+                  fit: BoxFit.cover,
+                  width: 48.w,
+                  height: 48.h,
+                  // Jika gambar gagal dimuat, kembalikan ke inisial nama
+                  errorBuilder: (context, error, stackTrace) {
+                    return Center(
+                      child: Text(
+                        initials,
+                        style: AppStyles.headingS.copyWith(color: Colors.white),
+                      ),
+                    );
+                  },
+                ),
+              )
+              // Jika belum ada foto, tampilkan inisial nama
+                  : Center(
                 child: Text(
                   initials,
                   style: AppStyles.headingS.copyWith(color: Colors.white),
@@ -123,6 +145,7 @@ class StudentDashboardScreen extends StatelessWidget {
               ),
             ),
           ),
+          // ======== AKHIR BAGIAN AVATAR ========
         ],
       ),
     );
@@ -234,9 +257,9 @@ class StudentDashboardScreen extends StatelessWidget {
             )
           else
             ...upcoming.map((assignment) => _DeadlineCard(
-                  assignment: assignment,
-                  onTap: () => controller.openExam(assignment),
-                )),
+              assignment: assignment,
+              onTap: () => controller.openExam(assignment),
+            )),
 
           SizedBox(height: 8.h),
         ],
@@ -286,9 +309,9 @@ class StudentDashboardScreen extends StatelessWidget {
             )
           else
             ...controller.myClasses.map((classData) => _ClassCard(
-                  classData: classData,
-                  onTap: () => controller.openClassDetail(classData),
-                )),
+              classData: classData,
+              onTap: () => controller.openClassDetail(classData),
+            )),
         ],
       ),
     );

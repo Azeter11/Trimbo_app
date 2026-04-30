@@ -1,48 +1,100 @@
 // auth_controller.dart
 // Controller GetX untuk mengelola semua logika autentikasi.
-// Menggunakan GetX: state management, navigasi, dan snackbar.
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter/widgets.dart';
 import '../models/user_model.dart';
 import '../../../services/firebase_auth_service.dart';
 import '../../../app/routes.dart';
-import '../../../core/constants/app_strings.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http; // Untuk upload ke Cloudinary
+import 'dart:convert'; // Untuk membaca hasil upload
+import 'dart:io';
 
 class AuthController extends GetxController {
-  // Inject service melalui GetX dependency injection
   final FirebaseAuthService _authService = Get.find<FirebaseAuthService>();
+
+  // ========================
+  // UPDATE PROFILE PICTURE (MENGGUNAKAN CLOUDINARY - ANTI BLOKIR)
+  // ========================
+  Future<void> updateProfilePicture() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      isLoading.value = true;
+
+      try {
+        File file = File(pickedFile.path);
+        String uid = currentUser.value!.uid;
+
+        // 1. Ganti dengan data Cloudinary Anda
+        // TODO: Masukkan Cloud Name dan Upload Preset Anda di sini!
+        String cloudName = 'defhvwndv';
+        String uploadPreset = 'trimbo';
+
+        // 2. Kirim gambar ke Cloudinary
+        var request = http.MultipartRequest(
+            'POST',
+            Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload')
+        );
+        request.fields['upload_preset'] = uploadPreset;
+        request.files.add(await http.MultipartFile.fromPath('file', file.path));
+
+        var response = await request.send();
+        var responseData = await response.stream.bytesToString();
+        var jsonResult = json.decode(responseData);
+
+        // Jika berhasil di-upload ke Cloudinary (status 200)
+        if (response.statusCode == 200) {
+
+          // Dapatkan URL gambar permanen (HTTPS) dari Cloudinary
+          String photoUrl = jsonResult['secure_url'];
+
+          // 3. Simpan URL tersebut ke Firestore pengguna kita
+          await FirebaseFirestore.instance.collection('users').doc(uid).update({
+            'photoUrl': photoUrl,
+          });
+
+          // 4. Update UI secara real-time
+          if (currentUser.value != null) {
+            currentUser.value!.photoUrl = photoUrl;
+            currentUser.refresh();
+          }
+
+          _showSuccessSnackbar('Foto profil berhasil diperbarui!');
+        } else {
+          _showErrorSnackbar('Gagal: ${jsonResult['error']['message']}');
+        }
+
+      } catch (e) {
+        _showErrorSnackbar('Terjadi kesalahan koneksi internet: $e');
+      } finally {
+        isLoading.value = false;
+      }
+    }
+  }
 
   // ========================
   // STATE (OBSERVABLE)
   // ========================
-  // Variabel Rx akan otomatis memperbarui UI saat nilainya berubah
-
-  /// Data user yang sedang login (null jika belum login)
   final Rx<UserModel?> currentUser = Rx<UserModel?>(null);
-
-  /// Status loading (true saat ada proses async berlangsung)
   final RxBool isLoading = false.obs;
 
   // ========================
   // FORM CONTROLLERS
-  // Dipakai di login & register screen
   // ========================
-
-  // Login
   final TextEditingController loginEmailController = TextEditingController();
   final TextEditingController loginPasswordController = TextEditingController();
   final GlobalKey<FormState> loginFormKey = GlobalKey<FormState>();
 
-  // Register siswa
   final TextEditingController studentNameController = TextEditingController();
   final TextEditingController studentEmailController = TextEditingController();
   final TextEditingController studentPasswordController = TextEditingController();
   final TextEditingController studentConfirmPasswordController = TextEditingController();
   final GlobalKey<FormState> studentRegisterFormKey = GlobalKey<FormState>();
 
-  // Register guru
   final TextEditingController teacherNameController = TextEditingController();
   final TextEditingController teacherNUPTKController = TextEditingController();
   final TextEditingController teacherInstitutionController = TextEditingController();
@@ -51,7 +103,6 @@ class AuthController extends GetxController {
   final TextEditingController teacherConfirmPasswordController = TextEditingController();
   final GlobalKey<FormState> teacherRegisterFormKey = GlobalKey<FormState>();
 
-  // Change Password
   final TextEditingController currentPasswordController = TextEditingController();
   final TextEditingController newPasswordController = TextEditingController();
   final TextEditingController confirmNewPasswordController = TextEditingController();
@@ -60,14 +111,13 @@ class AuthController extends GetxController {
   // ========================
   // LIFECYCLE
   // ========================
+  @override
+  void onInit() {
+    super.onInit();
+  }
 
-@override
-void onInit() {
-  super.onInit();
-}
   @override
   void onClose() {
-    // Bersihkan semua controller saat widget dihapus dari memory
     loginEmailController.dispose();
     loginPasswordController.dispose();
     studentNameController.dispose();
@@ -89,39 +139,27 @@ void onInit() {
   // ========================
   // CEK USER LOGIN
   // ========================
-
-  /// Cek status login dari Firebase dan arahkan ke halaman yang sesuai.
   Future<void> checkCurrentUser() async {
     final firebaseUser = _authService.currentUser;
 
     if (firebaseUser != null) {
-      // Reload dulu agar status emailVerified terbaru dari server
       await firebaseUser.reload();
       final refreshedUser = _authService.currentUser;
 
-      // [BUG FIX] Jika email belum diverifikasi, jangan izinkan masuk.
-      // Setelah registrasi, Firebase otomatis membuat sesi login aktif,
-      // sehingga tanpa cek ini user bisa bypass layar verifikasi email.
       if (refreshedUser == null || !refreshedUser.emailVerified) {
-        // Tidak logout agar user masih bisa membuka OTP screen dan
-        // mengklik 'kirim ulang'. Cukup arahkan ke login.
         Get.offAllNamed(AppRoutes.login);
         return;
       }
 
-      // Email sudah terverifikasi — ambil data dari Firestore
       final userData = await _authService.getUserData(refreshedUser.uid);
 
       if (userData != null) {
         currentUser.value = userData;
-        // Arahkan ke dashboard sesuai role
         _navigateByRole(userData);
       } else {
-        // Data tidak ditemukan, arahkan ke login
         Get.offAllNamed(AppRoutes.login);
       }
     } else {
-      // Belum login
       Get.offAllNamed(AppRoutes.login);
     }
   }
@@ -129,12 +167,8 @@ void onInit() {
   // ========================
   // LOGIN
   // ========================
-
-  /// Proses login dengan email dan password.
   Future<void> login() async {
-    // Validasi form dulu
     if (!loginFormKey.currentState!.validate()) return;
-
     isLoading.value = true;
 
     try {
@@ -144,18 +178,13 @@ void onInit() {
       );
 
       if (result.error != null) {
-        // Tampilkan pesan error menggunakan GetX snackbar
         _showErrorSnackbar(result.error!);
         return;
       }
 
-      // [BUG FIX] Cek apakah email sudah diverifikasi sebelum mengizinkan masuk.
       final firebaseUser = _authService.currentUser;
       if (firebaseUser != null && !firebaseUser.emailVerified) {
-        _showErrorSnackbar(
-          'Email belum diverifikasi. Silakan cek kotak masuk Anda dan klik link verifikasi.',
-        );
-        // Arahkan ke OTP screen agar user bisa kirim ulang email
+        _showErrorSnackbar('Email belum diverifikasi.');
         Get.offAllNamed(AppRoutes.otp, arguments: {
           'email': loginEmailController.text,
           'role': result.user?.role ?? 'student',
@@ -163,89 +192,55 @@ void onInit() {
         return;
       }
 
-      // Simpan data user
       currentUser.value = result.user;
-
-      // Arahkan ke dashboard sesuai role
       _navigateByRole(result.user!);
 
     } finally {
-      // Pastikan loading dimatikan meskipun ada error
       isLoading.value = false;
     }
   }
 
-  // ========================
-  // LOGIN DENGAN GOOGLE
-  // ========================
-
-  /// Proses login menggunakan Google Account.
   Future<void> loginWithGoogle() async {
     isLoading.value = true;
-
     try {
       final result = await _authService.signInWithGoogle();
-
       if (result.error != null) {
         _showErrorSnackbar(result.error!);
         return;
       }
-
-      // Simpan data user
       currentUser.value = result.user;
-
-      // Arahkan ke dashboard sesuai role
       _navigateByRole(result.user!);
-
     } finally {
       isLoading.value = false;
     }
   }
 
   // ========================
-  // REGISTER SISWA
+  // REGISTER
   // ========================
-
-  /// Proses pendaftaran akun siswa baru.
   Future<void> registerStudent() async {
     if (!studentRegisterFormKey.currentState!.validate()) return;
-
     isLoading.value = true;
-
     try {
       final error = await _authService.registerStudent(
         fullName: studentNameController.text,
         email: studentEmailController.text,
         password: studentPasswordController.text,
       );
-
       if (error != null) {
         _showErrorSnackbar(error);
         return;
       }
-
-      // Berhasil — arahkan ke halaman verifikasi email (OTP simulasi)
-      _showSuccessSnackbar('Akun berhasil dibuat! Silakan verifikasi email Anda.');
-      Get.offAllNamed(AppRoutes.otp, arguments: {
-        'email': studentEmailController.text,
-        'role': 'student',
-      });
-
+      _showSuccessSnackbar('Silakan verifikasi email Anda.');
+      Get.offAllNamed(AppRoutes.otp, arguments: {'email': studentEmailController.text, 'role': 'student'});
     } finally {
       isLoading.value = false;
     }
   }
 
-  // ========================
-  // REGISTER GURU
-  // ========================
-
-  /// Proses pendaftaran akun guru baru.
   Future<void> registerTeacher() async {
     if (!teacherRegisterFormKey.currentState!.validate()) return;
-
     isLoading.value = true;
-
     try {
       final error = await _authService.registerTeacher(
         fullName: teacherNameController.text,
@@ -254,87 +249,55 @@ void onInit() {
         email: teacherEmailController.text,
         password: teacherPasswordController.text,
       );
-
       if (error != null) {
         _showErrorSnackbar(error);
         return;
       }
-
-      _showSuccessSnackbar('Akun berhasil dibuat! Silakan verifikasi email Anda.');
-      Get.offAllNamed(AppRoutes.otp, arguments: {
-        'email': teacherEmailController.text,
-        'role': 'teacher',
-      });
-
+      _showSuccessSnackbar('Silakan verifikasi email Anda.');
+      Get.offAllNamed(AppRoutes.otp, arguments: {'email': teacherEmailController.text, 'role': 'teacher'});
     } finally {
       isLoading.value = false;
     }
   }
 
   // ========================
-  // LUPA PASSWORD
+  // LUPA & GANTI PASSWORD
   // ========================
-
   final TextEditingController forgotEmailController = TextEditingController();
 
-  /// Kirim email reset password.
   Future<bool> sendPasswordResetEmail() async {
-    if (forgotEmailController.text.trim().isEmpty) {
-      _showErrorSnackbar('Masukkan email Anda terlebih dahulu');
-      return false;
-    }
-
+    if (forgotEmailController.text.trim().isEmpty) return false;
     isLoading.value = true;
-
     try {
-      final error = await _authService.sendPasswordResetEmail(
-        forgotEmailController.text,
-      );
-
+      final error = await _authService.sendPasswordResetEmail(forgotEmailController.text);
       if (error != null) {
         _showErrorSnackbar(error);
         return false;
       }
-
-      _showSuccessSnackbar('Link reset password telah dikirim ke email Anda.');
+      _showSuccessSnackbar('Link reset password dikirim.');
       return true;
-
     } finally {
       isLoading.value = false;
     }
   }
 
-  // ========================
-  // GANTI PASSWORD
-  // ========================
-
-  /// Proses perubahan kata sandi pengguna.
   Future<void> changePassword() async {
     if (!changePasswordFormKey.currentState!.validate()) return;
-
     isLoading.value = true;
-
     try {
       final error = await _authService.changePassword(
         currentPassword: currentPasswordController.text,
         newPassword: newPasswordController.text,
       );
-
       if (error != null) {
         _showErrorSnackbar(error);
         return;
       }
-
-      // Berhasil
       _showSuccessSnackbar('Kata sandi berhasil diubah!');
-      
-      // Bersihkan form
       currentPasswordController.clear();
       newPasswordController.clear();
       confirmNewPasswordController.clear();
-      
-      Get.back(); // Tutup dialog
-
+      Get.back();
     } finally {
       isLoading.value = false;
     }
@@ -343,28 +306,17 @@ void onInit() {
   // ========================
   // LOGOUT
   // ========================
-
-  /// Proses logout dari aplikasi.
   Future<void> logout() async {
     isLoading.value = true;
-
     try {
       await _authService.logout();
       currentUser.value = null;
-
-      // Arahkan ke halaman splash agar muncul logo lagi, lalu otomatis ke login
       Get.offAllNamed(AppRoutes.splash);
-
     } finally {
       isLoading.value = false;
     }
   }
 
-  // ========================
-  // NAVIGASI BERDASARKAN ROLE
-  // ========================
-
-  /// Arahkan pengguna ke dashboard sesuai role mereka.
   void _navigateByRole(UserModel user) {
     if (user.isStudent) {
       Get.offAllNamed(AppRoutes.studentDashboard);
@@ -376,32 +328,19 @@ void onInit() {
   // ========================
   // HELPER SNACKBAR
   // ========================
-
-  /// Tampilkan snackbar pesan error (merah).
   void _showErrorSnackbar(String message) {
-    Get.snackbar(
-      'Oops!',
-      message,
-      backgroundColor: const Color(0xFFEF4444),
-      colorText: const Color(0xFFFFFFFF),
-      icon: const Icon(Icons.error_outline, color: Colors.white),
-      snackPosition: SnackPosition.TOP,
-      duration: const Duration(seconds: 3),
-      margin: const EdgeInsets.all(16),
-    );
+    Get.snackbar('Oops!', message,
+        backgroundColor: const Color(0xFFEF4444),
+        colorText: Colors.white,
+        icon: const Icon(Icons.error_outline, color: Colors.white),
+        snackPosition: SnackPosition.TOP, margin: const EdgeInsets.all(16));
   }
 
-  /// Tampilkan snackbar pesan sukses (hijau).
   void _showSuccessSnackbar(String message) {
-    Get.snackbar(
-      'Berhasil!',
-      message,
-      backgroundColor: const Color(0xFF10B981),
-      colorText: const Color(0xFFFFFFFF),
-      icon: const Icon(Icons.check_circle_outline, color: Colors.white),
-      snackPosition: SnackPosition.TOP,
-      duration: const Duration(seconds: 3),
-      margin: const EdgeInsets.all(16),
-    );
+    Get.snackbar('Berhasil!', message,
+        backgroundColor: const Color(0xFF10B981),
+        colorText: Colors.white,
+        icon: const Icon(Icons.check_circle_outline, color: Colors.white),
+        snackPosition: SnackPosition.TOP, margin: const EdgeInsets.all(16));
   }
 }

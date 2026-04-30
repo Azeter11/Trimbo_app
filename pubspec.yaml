@@ -9,7 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
   # State Management & Navigation
   get: ^4.6.6
 
@@ -19,6 +18,7 @@ dependencies:
   cloud_firestore: ^4.15.0
   firebase_messaging: ^14.7.0
   google_sign_in: ^6.2.1
+  firebase_storage: ^11.6.0
 
   # UI & Styling
   flutter_screenutil: ^5.9.0
@@ -39,11 +39,14 @@ dependencies:
   # Notifikasi Lokal
   flutter_local_notifications: ^17.0.0
 
+  # Image picker
+  image_picker: ^1.0.7
 
   # Timezone for scheduled notifications
   timezone: ^0.9.2
   flutter_timezone:
     path: ./packages/flutter_timezone
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:
