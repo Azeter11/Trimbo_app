@@ -2,6 +2,7 @@
 // Service untuk mengelola notifikasi lokal dan Firebase Cloud Messaging (FCM).
 // Notifikasi: tugas baru, deadline mendekat (H-1).
 
+import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -65,6 +66,15 @@ class NotificationService {
 
   /// Minta izin notifikasi (wajib di iOS, opsional di Android 13+).
   Future<void> _requestPermissions() async {
+    if (Platform.isAndroid) {
+      final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+          _localNotifications.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+              
+      await androidImplementation?.requestNotificationsPermission();
+      await androidImplementation?.requestExactAlarmsPermission();
+    }
+
     await _messaging.requestPermission(
       alert: true,
       badge: true,

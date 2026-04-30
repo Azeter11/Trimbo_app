@@ -75,7 +75,7 @@ class FirebaseAuthService {
   /// Daftarkan akun guru baru ke Firebase.
   Future<String?> registerTeacher({
     required String fullName,
-    required String nidn,
+    required String nuptk,
     required String institution,
     required String email,
     required String password,
@@ -93,7 +93,7 @@ class FirebaseAuthService {
         fullName: fullName.trim(),
         email: email.trim(),
         role: 'teacher',
-        nidn: nidn.trim(),
+        nuptk: nuptk.trim(),
         institution: institution.trim(),
         createdAt: DateTime.now(),
       );

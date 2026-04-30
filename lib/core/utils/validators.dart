@@ -137,15 +137,15 @@ class Validators {
   // VALIDASI NIDN (GURU)
   // ========================
 
-  /// Validasi NIDN harus 10 digit angka.
-  static String? nidn(String? value) {
+  /// Validasi NUPTK harus 16 digit angka.
+  static String? nuptk(String? value) {
     if (value == null || value.trim().isEmpty) {
       return AppStrings.errorFieldRequired;
     }
 
-    final nidnRegex = RegExp(r'^\d{10}$');
-    if (!nidnRegex.hasMatch(value.trim())) {
-      return 'NIDN harus 10 digit angka';
+    final nuptkRegex = RegExp(r'^\d{16}$');
+    if (!nuptkRegex.hasMatch(value.trim())) {
+      return 'NUPTK harus 16 digit angka';
     }
 
     return null;

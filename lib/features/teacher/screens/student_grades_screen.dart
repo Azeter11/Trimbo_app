@@ -13,17 +13,30 @@ import '../../../core/utils/helpers.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../services/export_service.dart';
 
-class StudentGradesScreen extends StatelessWidget {
+class StudentGradesScreen extends StatefulWidget {
   const StudentGradesScreen({super.key});
 
   @override
+  State<StudentGradesScreen> createState() => _StudentGradesScreenState();
+}
+
+class _StudentGradesScreenState extends State<StudentGradesScreen> {
+  final TeacherController controller = Get.find<TeacherController>();
+  late AssignmentModel assignment;
+
+  @override
+  void initState() {
+    super.initState();
+    assignment = Get.arguments as AssignmentModel;
+    
+    // Muat nilai saat halaman dibuka (hanya sekali)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.loadAssignmentSubmissions(assignment.id);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final TeacherController controller = Get.find<TeacherController>();
-    final AssignmentModel assignment = Get.arguments as AssignmentModel;
-
-    // Muat nilai saat halaman dibuka
-    controller.loadAssignmentSubmissions(assignment.id);
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -31,14 +44,18 @@ class StudentGradesScreen extends StatelessWidget {
         backgroundColor: AppColors.background,
         elevation: 0,
       ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
+      body: RefreshIndicator(
+        onRefresh: () => controller.loadAssignmentSubmissions(assignment.id),
+        color: AppColors.primary,
+        child: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
         final submissions = controller.assignmentSubmissions;
 
         return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.all(20.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,7 +312,8 @@ class StudentGradesScreen extends StatelessWidget {
             ],
           ),
         );
-      }),
+        }),
+      ),
     );
   }
 }

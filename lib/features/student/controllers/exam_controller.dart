@@ -14,7 +14,6 @@ import '../../../services/firestore_service.dart';
 import '../../../services/notification_service.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../app/routes.dart';
-import 'package:screenshot_callback/screenshot_callback.dart';
 import 'student_controller.dart';
 
 class ExamController extends GetxController with WidgetsBindingObserver {
@@ -76,9 +75,6 @@ class ExamController extends GetxController with WidgetsBindingObserver {
   /// Apakah ujian di-submit otomatis (karena anti-cheat / waktu habis)
   bool _isAutoSubmitted = false;
 
-  /// Callback untuk deteksi screenshot
-  ScreenshotCallback? _screenshotCallback;
-
   // ========================
   // LIFECYCLE
   // ========================
@@ -99,20 +95,6 @@ class ExamController extends GetxController with WidgetsBindingObserver {
 
     // Ambil soal dari Firestore
     _loadQuestions();
-
-    // Inisialisasi deteksi screenshot
-    _initScreenshotDetection();
-  }
-
-  /// Setup pendengar screenshot
-  void _initScreenshotDetection() {
-    _screenshotCallback = ScreenshotCallback();
-    _screenshotCallback?.addListener(() {
-      // Hanya proses jika ujian sudah dimulai
-      if (examStarted.value) {
-        _handleCheatingAttempt(isScreenshot: true);
-      }
-    });
   }
 
   @override
@@ -120,14 +102,13 @@ class ExamController extends GetxController with WidgetsBindingObserver {
     // Bersihkan resources saat controller dihapus
     WidgetsBinding.instance.removeObserver(this);
     _countdownTimer?.cancel();
-    _screenshotCallback?.dispose();
     // Kembalikan UI system normal (non-fullscreen)
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.onClose();
   }
 
   // ========================
-  // DETEKSI ANTI-CHEAT
+  // DETEKSI ANTI-CHEAT (LIFECYCLE)
   // ========================
 
   /// Dipanggil otomatis oleh Flutter saat status lifecycle app berubah.
@@ -139,48 +120,44 @@ class ExamController extends GetxController with WidgetsBindingObserver {
     // Deteksi saat app ke background atau pause
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
-      _handleCheatingAttempt(isScreenshot: false);
+      _handleCheatingAttempt();
     }
   }
 
-  /// Handle saat siswa ketahuan keluar dari layar ujian atau screenshot.
-  void _handleCheatingAttempt({required bool isScreenshot}) {
+  /// Handle saat siswa ketahuan keluar dari layar ujian.
+  void _handleCheatingAttempt() {
     // Jangan proses jika ujian sudah di-submit / sudah dieliminasi
     if (_isAutoSubmitted || isSubmitting.value) return;
 
     warningCount.value++;
 
     if (warningCount.value >= maxWarnings) {
-      // Sudah 3x melanggar → auto-submit langsung
-      _autoSubmitDueToCheat(reason: isScreenshot ? 'screenshot' : 'keluar layar');
+      // Sudah 3x melanggar → auto-submit dengan nilai 0
+      _autoSubmitDueToCheat();
     } else {
       // Tampilkan dialog peringatan
-      _showWarningDialog(isScreenshot: isScreenshot);
+      _showWarningDialog();
     }
   }
 
   /// Tampilkan dialog peringatan anti-cheat.
-  void _showWarningDialog({required bool isScreenshot}) {
+  void _showWarningDialog() {
     Get.dialog(
       WillPopScope(
-        // Mencegah dialog ditutup dengan tombol back
         onWillPop: () async => false,
         child: AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text(isScreenshot ? '📸 Screenshot Terdeteksi!' : '⚠️ Peringatan!'),
+          title: const Text('⚠️ Peringatan!'),
           content: Text(
-            isScreenshot
-                ? 'Anda dilarang mengambil screenshot saat ujian.\n\n'
-                : 'Anda keluar dari layar ujian.\nWaktu tetap berjalan.\n\n'
-                    'Peringatan ke-${warningCount.value} dari $maxWarnings.\n'
-                    'Melanggar ${maxWarnings - warningCount.value}x lagi akan otomatis mengumpulkan jawaban.',
+            'Anda keluar dari layar ujian.\nWaktu tetap berjalan.\n\n'
+            'Peringatan ke-${warningCount.value} dari $maxWarnings.\n'
+            'Melanggar ${maxWarnings - warningCount.value}x lagi akan otomatis mengumpulkan jawaban.',
           ),
           actions: [
             ElevatedButton(
               onPressed: () {
-                Get.back(); // Tutup dialog
-                // Aktifkan kembali fullscreen mode
+                Get.back();
                 SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
               },
               child: const Text('Mengerti, Kembali Ujian'),
@@ -188,10 +165,70 @@ class ExamController extends GetxController with WidgetsBindingObserver {
           ],
         ),
       ),
-      barrierDismissible: false, // Tidak bisa ditutup dengan tap di luar
+      barrierDismissible: false,
     );
   }
 
+  /// Auto-submit karena 3x melanggar (keluar layar).
+  void _autoSubmitDueToCheat() {
+    if (_isAutoSubmitted || isSubmitting.value) return;
+    _isAutoSubmitted = true;
+
+    _countdownTimer?.cancel();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+    if (Get.isDialogOpen ?? false) Get.back();
+
+    Get.snackbar(
+      '❌ Ujian Dihentikan',
+      'Anda keluar layar 3x. Jawaban dikumpulkan otomatis dengan nilai 0.',
+      backgroundColor: const Color(0xFFEF4444),
+      colorText: Colors.white,
+      duration: const Duration(seconds: 3),
+      snackPosition: SnackPosition.TOP,
+    );
+
+    Future.delayed(const Duration(milliseconds: 500), () async {
+      if (isSubmitting.value) return;
+      isSubmitting.value = true;
+
+      try {
+        await _firestoreService.submitAnswers(
+          assignmentId: assignment.id,
+          assignmentTitle: assignment.title,
+          studentId: student.uid,
+          studentName: student.fullName,
+          answers: const {},
+          questions: questions,
+          warningCount: warningCount.value,
+          isAutoSubmitted: true,
+        );
+
+        await _notificationService.cancelNotification(assignment.id);
+
+        if (Get.isRegistered<StudentController>()) {
+          await Get.find<StudentController>().loadDashboardData();
+        }
+      } catch (_) {
+        // Tetap navigasi keluar meski error Firestore
+      } finally {
+        isSubmitting.value = false;
+      }
+
+      Get.offNamed(
+        AppRoutes.result,
+        arguments: {
+          'score': 0.0,
+          'correct': 0,
+          'wrong': 0, // Belum tentu salah karena tidak dijawab
+          'skipped': questions.length, // Semua dianggap tidak dijawab
+          'totalQuestions': questions.length,
+          'assignmentTitle': assignment.title,
+          'isEliminatedByCheat': true,
+        },
+      );
+    });
+  }
   // ========================
   // MULAI UJIAN
   // ========================
@@ -399,78 +436,6 @@ class ExamController extends GetxController with WidgetsBindingObserver {
     });
   }
 
-  /// Auto-submit karena melanggar aturan anti-cheat (screenshot/keluar layar).
-  /// Langsung submit TANPA menunggu interaksi user agar tidak bisa dikerjakan lagi.
-  void _autoSubmitDueToCheat({required String reason}) {
-    if (_isAutoSubmitted || isSubmitting.value) return;
-    _isAutoSubmitted = true;
-
-    // Hentikan timer segera
-    _countdownTimer?.cancel();
-
-    // Kembalikan UI system normal
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-
-    // Tutup dialog peringatan yang mungkin masih terbuka
-    if (Get.isDialogOpen ?? false) Get.back();
-
-    // Tampilkan snackbar eliminasi
-    Get.snackbar(
-      '❌ Ujian Dihentikan',
-      'Anda melanggar aturan 3x ($reason). Nilai otomatis 0.',
-      backgroundColor: const Color(0xFFEF4444),
-      colorText: Colors.white,
-      duration: const Duration(seconds: 3),
-      snackPosition: SnackPosition.TOP,
-    );
-
-    // Submit dengan nilai 0 (jawaban dikosongkan agar hitungan skor = 0)
-    Future.delayed(const Duration(milliseconds: 500), () async {
-      if (isSubmitting.value) return;
-      isSubmitting.value = true;
-
-      try {
-        // Kirim submission ke Firestore dengan skor paksa 0
-        await _firestoreService.submitAnswers(
-          assignmentId: assignment.id,
-          assignmentTitle: assignment.title,
-          studentId: student.uid,
-          studentName: student.fullName,
-          answers: const {}, // kosongkan jawaban → skor 0
-          questions: questions,
-          warningCount: warningCount.value,
-          isAutoSubmitted: true,
-        );
-
-        // Berhasil submit (cheat) → Batalkan notifikasi
-        await _notificationService.cancelNotification(assignment.id);
-
-        // Refresh data dashboard siswa agar status tugas terupdate
-        if (Get.isRegistered<StudentController>()) {
-          await Get.find<StudentController>().loadDashboardData();
-        }
-      } catch (_) {
-        // Tetap navigasi keluar meski error Firestore
-      } finally {
-        isSubmitting.value = false;
-      }
-
-      // Navigasi ke result screen dengan nilai 0
-      // Gunakan offAllNamed agar tidak bisa back ke screen soal
-      Get.offAllNamed(
-        AppRoutes.result,
-        arguments: {
-          'score': 0.0,
-          'correct': 0,
-          'wrong': questions.length,
-          'skipped': questions.length,
-          'totalQuestions': questions.length,
-          'assignmentTitle': assignment.title,
-          'isEliminatedByCheat': true,
-        },
-      );
-    });
-  }
 
   // ========================
   // LOAD DATA

@@ -316,9 +316,9 @@ class _ExamPage extends StatelessWidget {
               ],
             ),
 
-            SizedBox(width: 16.w),
+            SizedBox(width: 12.w),
 
-            // Indikator jumlah peringatan
+            // Indikator jumlah peringatan anti-cheat
             if (controller.warningCount.value > 0)
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
@@ -327,10 +327,11 @@ class _ExamPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8.r),
                 ),
                 child: Text(
-                  '⚠️ ${controller.warningCount.value}/3',
+                  '⚠️ ${controller.warningCount.value}/${ExamController.maxWarnings}',
                   style: AppStyles.labelS.copyWith(color: AppColors.error),
                 ),
               ),
+
           ],
         ),
       );

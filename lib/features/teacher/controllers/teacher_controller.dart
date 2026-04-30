@@ -137,10 +137,13 @@ class TeacherController extends GetxController {
   /// Muat nilai siswa untuk tugas tertentu.
   Future<void> loadAssignmentSubmissions(String assignmentId) async {
     isLoading.value = true;
+    assignmentSubmissions.clear(); // Bersihkan data lama agar tidak muncul data salah
     try {
       final submissions =
           await _firestoreService.getAssignmentSubmissions(assignmentId);
       assignmentSubmissions.assignAll(submissions);
+    } catch (e) {
+      debugPrint("Error loading submissions: $e");
     } finally {
       isLoading.value = false;
     }

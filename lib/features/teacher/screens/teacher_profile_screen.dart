@@ -89,15 +89,15 @@ class TeacherProfileScreen extends StatelessWidget {
                       ),
                     ),
 
-                    if (user.nidn != null || user.institution != null) ...[
+                    if (user.nuptk != null || user.institution != null) ...[
                       SizedBox(height: 16.h),
                       Divider(color: AppColors.border),
                       SizedBox(height: 12.h),
 
-                      if (user.nidn != null)
+                      if (user.nuptk != null)
                         _ProfileRow(
-                            label: AppStrings.profileNIDN,
-                            value: user.nidn!),
+                            label: AppStrings.profileNUPTK,
+                            value: user.nuptk!),
                       if (user.institution != null) ...[
                         SizedBox(height: 8.h),
                         _ProfileRow(

@@ -1,6 +1,6 @@
 // register_teacher_screen.dart
 // Halaman pendaftaran akun guru baru.
-// Form tambahan: NIDN dan Tempat Mengajar.
+// Form tambahan: NUPTK dan Tempat Mengajar.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -108,14 +108,14 @@ class RegisterTeacherScreen extends StatelessWidget {
 
                   SizedBox(height: 16.h),
 
-                  // NIDN
+                  // NUPTK
                   CustomTextField(
-                    label: AppStrings.registerNIDN,
-                    hint: AppStrings.registerNIDNHint,
-                    controller: controller.teacherNIDNController,
+                    label: AppStrings.registerNUPTK,
+                    hint: AppStrings.registerNUPTKHint,
+                    controller: controller.teacherNUPTKController,
                     keyboardType: TextInputType.number,
-                    validator: Validators.nidn,
-                    maxLength: 10,
+                    validator: Validators.nuptk,
+                    maxLength: 16,
                     prefixIcon: Icon(Icons.badge_outlined, color: AppColors.textSecondary, size: 20.sp),
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     textInputAction: TextInputAction.next,

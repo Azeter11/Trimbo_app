@@ -7,7 +7,7 @@ class UserModel {
   final String fullName;      // Nama lengkap pengguna
   final String email;         // Alamat email
   final String role;          // Role: 'student' atau 'teacher'
-  final String? nidn;         // Khusus guru: Nomor Induk Dosen Nasional
+  final String? nuptk;        // Khusus guru: Nomor Unik Pendidik & Tenaga Kependidikan
   final String? institution;  // Khusus guru: nama instansi/sekolah
   final DateTime createdAt;   // Tanggal mendaftar
   final bool isEmailVerified; // Status verifikasi email
@@ -18,7 +18,7 @@ class UserModel {
     required this.email,
     required this.role,
     required this.createdAt,
-    this.nidn,
+    this.nuptk,
     this.institution,
     this.isEmailVerified = false,
   });
@@ -54,7 +54,7 @@ class UserModel {
       fullName: map['fullName'] ?? '',
       email: map['email'] ?? '',
       role: map['role'] ?? 'student',
-      nidn: map['nidn'],
+      nuptk: map['nuptk'] ?? map['nidn'], // Dukung migrasi data lama
       institution: map['institution'],
       createdAt: map['createdAt'] != null
           ? (map['createdAt'] as dynamic).toDate() // Firestore Timestamp → DateTime
@@ -69,7 +69,7 @@ class UserModel {
       'fullName': fullName,
       'email': email,
       'role': role,
-      'nidn': nidn,
+      'nuptk': nuptk,
       'institution': institution,
       'createdAt': createdAt,
       'isEmailVerified': isEmailVerified,
@@ -80,7 +80,7 @@ class UserModel {
   UserModel copyWith({
     String? fullName,
     String? email,
-    String? nidn,
+    String? nuptk,
     String? institution,
     bool? isEmailVerified,
   }) {
@@ -89,7 +89,7 @@ class UserModel {
       fullName: fullName ?? this.fullName,
       email: email ?? this.email,
       role: role,
-      nidn: nidn ?? this.nidn,
+      nuptk: nuptk ?? this.nuptk,
       institution: institution ?? this.institution,
       createdAt: createdAt,
       isEmailVerified: isEmailVerified ?? this.isEmailVerified,

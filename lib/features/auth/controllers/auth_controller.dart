@@ -44,7 +44,7 @@ class AuthController extends GetxController {
 
   // Register guru
   final TextEditingController teacherNameController = TextEditingController();
-  final TextEditingController teacherNIDNController = TextEditingController();
+  final TextEditingController teacherNUPTKController = TextEditingController();
   final TextEditingController teacherInstitutionController = TextEditingController();
   final TextEditingController teacherEmailController = TextEditingController();
   final TextEditingController teacherPasswordController = TextEditingController();
@@ -75,7 +75,7 @@ void onInit() {
     studentPasswordController.dispose();
     studentConfirmPasswordController.dispose();
     teacherNameController.dispose();
-    teacherNIDNController.dispose();
+    teacherNUPTKController.dispose();
     teacherInstitutionController.dispose();
     teacherEmailController.dispose();
     teacherPasswordController.dispose();
@@ -95,8 +95,22 @@ void onInit() {
     final firebaseUser = _authService.currentUser;
 
     if (firebaseUser != null) {
-      // Ada sesi login, ambil data dari Firestore
-      final userData = await _authService.getUserData(firebaseUser.uid);
+      // Reload dulu agar status emailVerified terbaru dari server
+      await firebaseUser.reload();
+      final refreshedUser = _authService.currentUser;
+
+      // [BUG FIX] Jika email belum diverifikasi, jangan izinkan masuk.
+      // Setelah registrasi, Firebase otomatis membuat sesi login aktif,
+      // sehingga tanpa cek ini user bisa bypass layar verifikasi email.
+      if (refreshedUser == null || !refreshedUser.emailVerified) {
+        // Tidak logout agar user masih bisa membuka OTP screen dan
+        // mengklik 'kirim ulang'. Cukup arahkan ke login.
+        Get.offAllNamed(AppRoutes.login);
+        return;
+      }
+
+      // Email sudah terverifikasi — ambil data dari Firestore
+      final userData = await _authService.getUserData(refreshedUser.uid);
 
       if (userData != null) {
         currentUser.value = userData;
@@ -132,6 +146,20 @@ void onInit() {
       if (result.error != null) {
         // Tampilkan pesan error menggunakan GetX snackbar
         _showErrorSnackbar(result.error!);
+        return;
+      }
+
+      // [BUG FIX] Cek apakah email sudah diverifikasi sebelum mengizinkan masuk.
+      final firebaseUser = _authService.currentUser;
+      if (firebaseUser != null && !firebaseUser.emailVerified) {
+        _showErrorSnackbar(
+          'Email belum diverifikasi. Silakan cek kotak masuk Anda dan klik link verifikasi.',
+        );
+        // Arahkan ke OTP screen agar user bisa kirim ulang email
+        Get.offAllNamed(AppRoutes.otp, arguments: {
+          'email': loginEmailController.text,
+          'role': result.user?.role ?? 'student',
+        });
         return;
       }
 
@@ -221,7 +249,7 @@ void onInit() {
     try {
       final error = await _authService.registerTeacher(
         fullName: teacherNameController.text,
-        nidn: teacherNIDNController.text,
+        nuptk: teacherNUPTKController.text,
         institution: teacherInstitutionController.text,
         email: teacherEmailController.text,
         password: teacherPasswordController.text,

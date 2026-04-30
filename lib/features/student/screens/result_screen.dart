@@ -39,15 +39,27 @@ class _ResultScreenState extends State<ResultScreen>
   void initState() {
     super.initState();
 
-    // Ambil data dari Get.arguments
-    final args = Get.arguments as Map<String, dynamic>;
-    score = (args['score'] as num).toDouble();
-    correct = args['correct'] as int;
-    wrong = args['wrong'] as int;
-    skipped = args['skipped'] as int;
-    totalQuestions = args['totalQuestions'] as int;
-    assignmentTitle = args['assignmentTitle'] as String;
-    isEliminatedByCheat = args['isEliminatedByCheat'] as bool? ?? false;
+    // Ambil data dari Get.arguments dengan aman
+    final dynamic args = Get.arguments;
+    
+    if (args is Map) {
+      score = (args['score'] as num?)?.toDouble() ?? 0.0;
+      correct = args['correct'] as int? ?? 0;
+      wrong = args['wrong'] as int? ?? 0;
+      skipped = args['skipped'] as int? ?? 0;
+      totalQuestions = args['totalQuestions'] as int? ?? 0;
+      assignmentTitle = args['assignmentTitle'] as String? ?? 'Hasil Ujian';
+      isEliminatedByCheat = args['isEliminatedByCheat'] as bool? ?? false;
+    } else {
+      // Default jika argumen tidak ada atau salah format
+      score = 0.0;
+      correct = 0;
+      wrong = 0;
+      skipped = 0;
+      totalQuestions = 0;
+      assignmentTitle = 'Hasil Ujian';
+      isEliminatedByCheat = false;
+    }
 
     // Setup animasi count-up untuk nilai
     _animController = AnimationController(
@@ -271,7 +283,7 @@ class _ResultScreenState extends State<ResultScreen>
   /// Pesan motivasi berdasarkan nilai.
   String _getMotivationMessage() {
     if (isEliminatedByCheat) {
-      return '⚠️ Peringatan: Perilaku kecurangan telah direkam. Patuhi aturan ujian pada kesempatan berikutnya.';
+      return '⚠️ Perilaku kecurangan telah direkam. Patuhi aturan ujian pada kesempatan berikutnya.';
     }
     if (score >= 90) return '🎉 Luar biasa! Pertahankan prestasi ini!';
     if (score >= 80) return '👏 Bagus sekali! Sedikit lagi menuju sempurna!';

@@ -40,8 +40,8 @@ class AppStrings {
   static const String registerAsTeacher = 'Saya Guru';
   static const String registerFullName = 'Nama Lengkap';
   static const String registerFullNameHint = 'Masukkan nama lengkap';
-  static const String registerNIDN = 'NIDN';
-  static const String registerNIDNHint = 'Nomor Induk Dosen Nasional';
+  static const String registerNUPTK = 'NUPTK';
+  static const String registerNUPTKHint = 'Nomor Unik Pendidik & Tenaga Kependidikan';
   static const String registerInstitution = 'Tempat Mengajar';
   static const String registerInstitutionHint = 'Nama instansi/sekolah';
   static const String registerEmail = 'Email';
@@ -190,7 +190,7 @@ class AppStrings {
   static const String profileRole = 'Peran';
   static const String profileRoleStudent = 'Siswa';
   static const String profileRoleTeacher = 'Guru';
-  static const String profileNIDN = 'NIDN';
+  static const String profileNUPTK = 'NUPTK';
   static const String profileInstitution = 'Institusi';
   static const String profileGuide = 'Panduan Penggunaan';
   static const String profileGuideJoinClass = 'Cara Bergabung Kelas';

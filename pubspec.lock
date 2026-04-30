@@ -735,13 +735,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
-  screenshot_callback:
-    dependency: "direct main"
-    description:
-      path: "packages/screenshot_callback"
-      relative: true
-    source: path
-    version: "3.0.1"
   share_plus:
     dependency: "direct main"
     description:
