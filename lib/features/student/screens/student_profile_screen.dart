@@ -25,8 +25,9 @@ class StudentProfileScreen extends StatelessWidget {
         backgroundColor: AppColors.background,
         elevation: 0,
       ),
+      // Obx mendeteksi perubahan data user, termasuk saat foto selesai diupload
       body: Obx(
-        () {
+            () {
           final user = authController.currentUser.value;
           if (user == null) return const SizedBox.shrink();
 
@@ -62,23 +63,80 @@ class StudentProfileScreen extends StatelessWidget {
       decoration: AppStyles.cardDecoration,
       child: Column(
         children: [
-          // Avatar inisial
-          Container(
-            width: 80.w,
-            height: 80.h,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.primary, AppColors.secondary],
-              ),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                user.initials,
-                style: AppStyles.headingL.copyWith(color: Colors.white),
-              ),
+          // ======== BAGIAN FOTO PROFIL ========
+          GestureDetector(
+            onTap: () => Get.find<AuthController>().updateProfilePicture(),
+            child: Stack(
+              alignment: Alignment.bottomRight,
+              children: [
+                // Container Avatar Utama
+                Container(
+                  width: 80.w,
+                  height: 80.h,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    // Warna abu-abu sebagai cadangan jika gradient hilang
+                    color: Colors.grey[200],
+                    gradient: (user.photoUrl == null || user.photoUrl!.isEmpty)
+                        ? const LinearGradient(
+                      colors: [AppColors.primary, AppColors.secondary],
+                    )
+                        : null,
+                  ),
+                  // Cek apakah ada URL foto
+                  child: (user.photoUrl != null && user.photoUrl!.isNotEmpty)
+                      ? ClipOval( // Potong gambar agar melingkar
+                    child: Image.network(
+                      user.photoUrl!,
+                      fit: BoxFit.cover,
+                      width: 80.w,
+                      height: 80.h,
+                      // Tampilkan animasi loading saat mengunduh gambar
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                (loadingProgress.expectedTotalBytes ?? 1)
+                                : null,
+                            strokeWidth: 2,
+                            color: AppColors.primary,
+                          ),
+                        );
+                      },
+                      // Tampilkan ikon jika gagal memuat gambar
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(Icons.broken_image, color: Colors.grey[400], size: 30.sp);
+                      },
+                    ),
+                  )
+                  // Jika tidak ada URL foto, tampilkan inisial
+                      : Center(
+                    child: Text(
+                      user.initials,
+                      style: AppStyles.headingL.copyWith(color: Colors.white),
+                    ),
+                  ),
+                ),
+                // Ikon Kamera di pojok bawah
+                Container(
+                  padding: EdgeInsets.all(6.w),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary, // Menggunakan warna primary aplikasi
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2), // Efek border putih
+                  ),
+                  child: Icon(
+                    Icons.camera_alt,
+                    size: 14.sp,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
           ),
+          // ======== AKHIR BAGIAN FOTO PROFIL ========
 
           SizedBox(height: 16.h),
 
@@ -110,8 +168,7 @@ class StudentProfileScreen extends StatelessWidget {
                 SizedBox(width: 6.w),
                 Text(
                   AppStrings.profileRoleStudent,
-                  style:
-                      AppStyles.labelS.copyWith(color: AppColors.primary),
+                  style: AppStyles.labelS.copyWith(color: AppColors.primary),
                 ),
               ],
             ),
@@ -187,9 +244,9 @@ class StudentProfileScreen extends StatelessWidget {
     Get.dialog(
       AlertDialog(
         shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
         title:
-            Text(AppStrings.profileChangePassword, style: AppStyles.headingS),
+        Text(AppStrings.profileChangePassword, style: AppStyles.headingS),
         content: SingleChildScrollView(
           child: Form(
             key: authController.changePasswordFormKey,
@@ -205,10 +262,10 @@ class StudentProfileScreen extends StatelessWidget {
                     labelStyle: AppStyles.bodyS,
                     hintText: 'Masukkan kata sandi saat ini',
                     hintStyle:
-                        AppStyles.bodyS.copyWith(color: AppColors.textTertiary),
+                    AppStyles.bodyS.copyWith(color: AppColors.textTertiary),
                   ),
                   validator: (value) =>
-                      (value == null || value.isEmpty) ? 'Wajib diisi' : null,
+                  (value == null || value.isEmpty) ? 'Wajib diisi' : null,
                 ),
                 SizedBox(height: 16.h),
                 TextFormField(
@@ -220,7 +277,7 @@ class StudentProfileScreen extends StatelessWidget {
                     labelStyle: AppStyles.bodyS,
                     hintText: 'Minimal 8 karakter',
                     hintStyle:
-                        AppStyles.bodyS.copyWith(color: AppColors.textTertiary),
+                    AppStyles.bodyS.copyWith(color: AppColors.textTertiary),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'Wajib diisi';
@@ -259,24 +316,24 @@ class StudentProfileScreen extends StatelessWidget {
             child: Text(AppStrings.buttonCancel),
           ),
           Obx(() => ElevatedButton(
-                onPressed: authController.isLoading.value
-                    ? null
-                    : () => authController.changePassword(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                ),
-                child: authController.isLoading.value
-                    ? SizedBox(
-                        width: 20.w,
-                        height: 20.h,
-                        child: const CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text(AppStrings.buttonSave),
-              )),
+            onPressed: authController.isLoading.value
+                ? null
+                : () => authController.changePassword(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            child: authController.isLoading.value
+                ? SizedBox(
+              width: 20.w,
+              height: 20.h,
+              child: const CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
+                : Text(AppStrings.buttonSave),
+          )),
         ],
       ),
       barrierDismissible: false,
@@ -358,13 +415,13 @@ class _SettingsTile extends StatelessWidget {
     final iconBg = isDestructive
         ? AppColors.errorLight
         : subtitle != null
-            ? AppColors.primaryLight
-            : AppColors.surfaceSecondary;
+        ? AppColors.primaryLight
+        : AppColors.surfaceSecondary;
     final iconColor = isDestructive
         ? AppColors.error
         : subtitle != null
-            ? AppColors.primary
-            : AppColors.textSecondary;
+        ? AppColors.primary
+        : AppColors.textSecondary;
 
     return GestureDetector(
       onTap: onTap,

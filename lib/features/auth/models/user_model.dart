@@ -11,8 +11,9 @@ class UserModel {
   final String? institution;  // Khusus guru: nama instansi/sekolah
   final DateTime createdAt;   // Tanggal mendaftar
   final bool isEmailVerified; // Status verifikasi email
+  String? photoUrl;
 
-  const UserModel({
+   UserModel({
     required this.uid,
     required this.fullName,
     required this.email,
@@ -21,6 +22,7 @@ class UserModel {
     this.nuptk,
     this.institution,
     this.isEmailVerified = false,
+    this.photoUrl,
   });
 
   // ========================
@@ -54,6 +56,7 @@ class UserModel {
       fullName: map['fullName'] ?? '',
       email: map['email'] ?? '',
       role: map['role'] ?? 'student',
+      photoUrl: map['photoUrl'],
       nuptk: map['nuptk'] ?? map['nidn'], // Dukung migrasi data lama
       institution: map['institution'],
       createdAt: map['createdAt'] != null
@@ -73,6 +76,7 @@ class UserModel {
       'institution': institution,
       'createdAt': createdAt,
       'isEmailVerified': isEmailVerified,
+      'photoUrl': photoUrl,
     };
   }
 
