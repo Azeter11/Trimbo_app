@@ -9,6 +9,7 @@ import '../../auth/controllers/auth_controller.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_styles.dart';
+import 'supervised_students_screen.dart';
 
 class TeacherProfileScreen extends StatelessWidget {
   const TeacherProfileScreen({super.key});
@@ -133,6 +134,20 @@ class TeacherProfileScreen extends StatelessWidget {
               ),
 
               SizedBox(height: 16.h),
+
+              // ====== LIHAT MAHASISWA BIMBINGAN (Monitoring Skripsi) ======
+              _SettingTile(
+                icon: Icons.people_alt_rounded,
+                title: 'Lihat Mahasiswa Bimbingan',
+                subtitle: 'Data dari sistem monitoring skripsi',
+                onTap: () => Get.to(
+                  () => const SupervisedStudentsScreen(),
+                  transition: Transition.rightToLeft,
+                ),
+                showBadge: true,
+              ),
+
+              SizedBox(height: 8.h),
 
               // ====== SETTINGS ======
               _SettingTile(
@@ -300,14 +315,18 @@ class _ProfileRow extends StatelessWidget {
 class _SettingTile extends StatelessWidget {
   final IconData icon;
   final String title;
+  final String? subtitle;
   final VoidCallback onTap;
   final bool isDestructive;
+  final bool showBadge;
 
   const _SettingTile({
     required this.icon,
     required this.title,
     required this.onTap,
+    this.subtitle,
     this.isDestructive = false,
+    this.showBadge = false,
   });
 
   @override
@@ -321,16 +340,56 @@ class _SettingTile extends StatelessWidget {
         decoration: AppStyles.cardDecorationLight,
         child: Row(
           children: [
-            Icon(icon, color: color, size: 22.sp),
+            // Icon dengan badge opsional
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(icon, color: showBadge ? AppColors.primary : color, size: 22.sp),
+                if (showBadge)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      width: 8.w,
+                      height: 8.h,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF22C55E),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             SizedBox(width: 14.w),
             Expanded(
-                child: Text(title,
-                    style: AppStyles.labelL.copyWith(color: color))),
-            Icon(Icons.arrow_forward_ios_rounded,
-                size: 14.sp,
-                color: isDestructive
-                    ? AppColors.error
-                    : AppColors.textTertiary),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppStyles.labelL.copyWith(
+                      color: showBadge ? AppColors.primary : color,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    SizedBox(height: 2.h),
+                    Text(
+                      subtitle!,
+                      style: AppStyles.bodyS.copyWith(color: AppColors.textTertiary),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 14.sp,
+              color: isDestructive
+                  ? AppColors.error
+                  : showBadge
+                      ? AppColors.primary
+                      : AppColors.textTertiary,
+            ),
           ],
         ),
       ),

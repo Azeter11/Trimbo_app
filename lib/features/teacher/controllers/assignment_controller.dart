@@ -8,10 +8,12 @@ import 'package:get/get.dart';
 import '../../student/models/assignment_model.dart';
 import '../models/question_model.dart';
 import '../../../services/firestore_service.dart';
+import '../../../services/notification_service.dart';
 import '../../../app/routes.dart';
 
 class AssignmentController extends GetxController {
   final FirestoreService _firestoreService = Get.find<FirestoreService>();
+  final NotificationService _notificationService = Get.find<NotificationService>();
 
   // ========================
   // STATE
@@ -232,6 +234,13 @@ class AssignmentController extends GetxController {
         Get.snackbar('Gagal', error);
         return;
       }
+
+      // Kirim notifikasi FCM ke semua mahasiswa di kelas tersebut
+      await _notificationService.sendNotificationToTopic(
+        topic: 'class_${currentAssignment.value!.classId}',
+        title: 'Tugas Baru: ${currentAssignment.value!.title}',
+        body: 'Dosen telah menerbitkan tugas baru. Segera kerjakan sebelum deadline!',
+      );
 
       Get.snackbar(
         'Berhasil!',

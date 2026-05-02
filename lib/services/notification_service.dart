@@ -8,6 +8,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../core/constants/app_strings.dart';
 import '../features/student/models/assignment_model.dart';
 
@@ -26,7 +28,8 @@ class NotificationService {
   /// Dipanggil sekali di main.dart saat aplikasi pertama dibuka.
   Future<void> initialize() async {
     // Konfigurasi untuk Android
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
     // Konfigurasi untuk iOS
     const iosSettings = DarwinInitializationSettings(
@@ -70,7 +73,7 @@ class NotificationService {
       final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
           _localNotifications.resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
-              
+
       await androidImplementation?.requestNotificationsPermission();
       await androidImplementation?.requestExactAlarmsPermission();
     }
@@ -114,8 +117,8 @@ class NotificationService {
   }) async {
     // Detail notifikasi untuk Android
     const androidDetails = AndroidNotificationDetails(
-      'trimbo_channel',    // Channel ID
-      'Trimbo',            // Channel name
+      'trimbo_channel', // Channel ID
+      'Trimbo', // Channel name
       channelDescription: 'Notifikasi dari Trimbo',
       importance: Importance.high,
       priority: Priority.high,
@@ -223,5 +226,67 @@ class NotificationService {
   /// Ambil FCM token untuk dikirim ke server (untuk push notification).
   Future<String?> getFCMToken() async {
     return await _messaging.getToken();
+  }
+
+  // ========================
+  // FCM TOPIC SUBSCRIPTION
+  // ========================
+
+  /// Berlangganan ke topik FCM (misal: untuk kelas tertentu)
+  Future<void> subscribeToTopic(String topic) async {
+    await _messaging.subscribeToTopic(topic);
+  }
+
+  /// Berhenti berlangganan dari topik FCM
+  Future<void> unsubscribeFromTopic(String topic) async {
+    await _messaging.unsubscribeFromTopic(topic);
+  }
+
+  // ========================
+  // SEND FCM NOTIFICATION
+  // ========================
+
+  /// Mengirim notifikasi menggunakan FCM HTTP Legacy API
+  /// Catatan: Anda perlu mengganti 'YOUR_SERVER_KEY' dengan Server Key dari Firebase Console > Project Settings > Cloud Messaging
+  Future<void> sendNotificationToTopic({
+    required String topic,
+    required String title,
+    required String body,
+  }) async {
+    try {
+      // GANTI DENGAN SERVER KEY FIREBASE ANDA
+      const String serverKey = 'AIzaSyCe4VgOYaoI7RXBng8SsRtpS4z-ImrIajo';
+
+      final response = await http.post(
+        Uri.parse('https://fcm.googleapis.com/fcm/send'),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=$serverKey',
+        },
+        body: jsonEncode(
+          <String, dynamic>{
+            'notification': <String, dynamic>{
+              'body': body,
+              'title': title,
+            },
+            'priority': 'high',
+            'data': <String, dynamic>{
+              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+              'status': 'done',
+            },
+            'to': '/topics/$topic',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        print('Notifikasi FCM berhasil dikirim ke topik: $topic');
+      } else {
+        print(
+            'Gagal mengirim notifikasi FCM. Status Code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error mengirim notifikasi FCM: $e');
+    }
   }
 }

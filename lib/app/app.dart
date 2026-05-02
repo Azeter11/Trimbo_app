@@ -12,6 +12,7 @@ import '../services/firebase_auth_service.dart';
 import '../services/firestore_service.dart';
 import '../services/notification_service.dart';
 import '../services/export_service.dart';
+import '../services/skripsi_monitoring_service.dart';
 import '../features/auth/controllers/auth_controller.dart';
 
 // ====== IMPORT SCREENS AUTH ======
@@ -78,6 +79,7 @@ class TrimboApp extends StatelessWidget {
                 Get.put(FirestoreService(), permanent: true);
                 Get.put(NotificationService(), permanent: true);
                 Get.put(ExportService(), permanent: true);
+                Get.put(SkripsiMonitoringService(), permanent: true);
                 // Daftarkan AuthController
                 Get.put(AuthController(), permanent: true);
               }),

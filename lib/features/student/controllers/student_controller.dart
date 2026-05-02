@@ -77,6 +77,9 @@ class StudentController extends GetxController {
       }
       
       // Reload tugas saat kelas berubah (misal join kelas baru)
+      for (var c in classes) {
+        _notificationService.subscribeToTopic('class_${c.id}');
+      }
       _loadAllAssignments(classes);
     });
   }
@@ -121,8 +124,8 @@ class StudentController extends GetxController {
 
     allAssignments.assignAll(assignments);
     
-    // Jadwalkan notifikasi untuk tugas yang belum dikerjakan
-    _scheduleAssignmentReminders();
+    // Fitur notifikasi 1 jam sebelum deadline dinonaktifkan sementara
+    // _scheduleAssignmentReminders();
   }
 
   /// Jadwalkan pengingat deadline untuk semua tugas yang belum diselesaikan.
@@ -130,7 +133,7 @@ class StudentController extends GetxController {
     for (final assignment in allAssignments) {
       // Hanya jadwalkan jika belum dikerjakan dan belum lewat deadline
       if (!hasSubmitted(assignment.id) && !assignment.isExpired) {
-        _notificationService.scheduleDeadlineReminder(assignment);
+        // _notificationService.scheduleDeadlineReminder(assignment);
       }
     }
   }
@@ -248,6 +251,7 @@ class StudentController extends GetxController {
       if (error != null) {
         Get.snackbar('Gagal', error, backgroundColor: Colors.red, colorText: Colors.white);
       } else {
+        await _notificationService.unsubscribeFromTopic('class_${classData.id}');
         Get.back(); // Kembali dari screen detail kelas
         Get.snackbar(
           'Berhasil',
