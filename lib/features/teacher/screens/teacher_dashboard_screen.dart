@@ -106,12 +106,29 @@ class TeacherDashboardScreen extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white30, width: 2),
               ),
-              child: Center(
-                child: Text(
-                  user?.initials ?? '?',
-                  style: AppStyles.headingS.copyWith(color: Colors.white),
-                ),
-              ),
+              child: (user?.photoUrl != null && user!.photoUrl!.isNotEmpty)
+                  ? ClipOval(
+                      child: Image.network(
+                        user.photoUrl!,
+                        fit: BoxFit.cover,
+                        width: 48.w,
+                        height: 48.h,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Text(
+                              user.initials,
+                              style: AppStyles.headingS.copyWith(color: Colors.white),
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  : Center(
+                      child: Text(
+                        user?.initials ?? '?',
+                        style: AppStyles.headingS.copyWith(color: Colors.white),
+                      ),
+                    ),
             ),
           ),
         ],

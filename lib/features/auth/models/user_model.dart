@@ -87,6 +87,7 @@ class UserModel {
     String? nuptk,
     String? institution,
     bool? isEmailVerified,
+    String? photoUrl,
   }) {
     return UserModel(
       uid: uid,
@@ -97,6 +98,7 @@ class UserModel {
       institution: institution ?? this.institution,
       createdAt: createdAt,
       isEmailVerified: isEmailVerified ?? this.isEmailVerified,
+      photoUrl: photoUrl ?? this.photoUrl,
     );
   }
 }
