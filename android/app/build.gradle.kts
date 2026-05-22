@@ -5,16 +5,32 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
 }
+val keystoreProperties = java.util.Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
+}
 
 android {
     namespace = "com.trimbo.app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
-
+    ndkVersion = "30.0.14904198"
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17  // <-- Ubah di sini
         targetCompatibility = JavaVersion.VERSION_17  // <-- Ubah di sini
+    }
+
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties.getProperty("keyAlias")
+            keyPassword = keystoreProperties.getProperty("keyPassword")
+            val keystoreFilePath = keystoreProperties.getProperty("storeFile")
+            if (keystoreFilePath != null) {
+                storeFile = file(keystoreFilePath)
+            }
+            storePassword = keystoreProperties.getProperty("storePassword")
+        }
     }
 
     kotlinOptions {
@@ -33,29 +49,28 @@ android {
     }
 
     buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+        getByName("release") {
+            // Ini yang menghubungkan kunci rilis ke proses build
+            signingConfig = signingConfigs.getByName("release")
         }
     }
-}
 
-dependencies {
-  // Import the Firebase BoM
-  implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
+    dependencies {
+        // Import the Firebase BoM
+        implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
 
-  // TODO: Add the dependencies for Firebase products you want to use
-  // When using the BoM, don't specify versions in Firebase dependencies
-  implementation("com.google.firebase:firebase-analytics")
+        // TODO: Add the dependencies for Firebase products you want to use
+        // When using the BoM, don't specify versions in Firebase dependencies
+        implementation("com.google.firebase:firebase-analytics")
 
-  // Add the dependencies for any other desired Firebase products
-  // https://firebase.google.com/docs/android/setup#available-libraries
+        // Add the dependencies for any other desired Firebase products
+        // https://firebase.google.com/docs/android/setup#available-libraries
 
-  // PERBAIKAN 3: Menggunakan tanda kurung '()' dan tanda kutip ganda '"'
-  coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
-}
+        // PERBAIKAN 3: Menggunakan tanda kurung '()' dan tanda kutip ganda '"'
+        coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
+    }
 
-flutter {
-    source = "../.."
+    flutter {
+        source = "../.."
+    }
 }
