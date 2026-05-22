@@ -41,25 +41,83 @@ class TeacherProfileScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     // Avatar
-                    Container(
-                      width: 80.w,
-                      height: 80.h,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [AppColors.secondary, AppColors.primary],
-                        ),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(user.initials,
-                            style: AppStyles.headingL
-                                .copyWith(color: Colors.white)),
+                    GestureDetector(
+                      onTap: () => authController.updateProfilePicture(),
+                      child: Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          Container(
+                            width: 80.w,
+                            height: 80.h,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.grey[200],
+                              gradient: (user.photoUrl == null || user.photoUrl!.isEmpty)
+                                  ? const LinearGradient(
+                                      colors: [AppColors.secondary, AppColors.primary],
+                                    )
+                                  : null,
+                            ),
+                            child: (user.photoUrl != null && user.photoUrl!.isNotEmpty)
+                                ? ClipOval(
+                                    child: Image.network(
+                                      user.photoUrl!,
+                                      fit: BoxFit.cover,
+                                      width: 80.w,
+                                      height: 80.h,
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            value: loadingProgress.expectedTotalBytes != null
+                                                ? loadingProgress.cumulativeBytesLoaded /
+                                                    (loadingProgress.expectedTotalBytes ?? 1)
+                                                : null,
+                                            strokeWidth: 2,
+                                            color: AppColors.secondary,
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Icon(Icons.broken_image, color: Colors.grey[400], size: 30.sp);
+                                      },
+                                    ),
+                                  )
+                                : Center(
+                                    child: Text(user.initials,
+                                        style: AppStyles.headingL.copyWith(color: Colors.white)),
+                                  ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.all(6.w),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: Icon(
+                              Icons.camera_alt,
+                              size: 14.sp,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
 
                     SizedBox(height: 16.h),
 
-                    Text(user.fullName, style: AppStyles.headingS),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(user.fullName, style: AppStyles.headingS),
+                        SizedBox(width: 8.w),
+                        GestureDetector(
+                          onTap: () => _showEditProfileDialog(context, authController, user),
+                          child: Icon(Icons.edit, size: 18.sp, color: AppColors.secondary),
+                        ),
+                      ],
+                    ),
 
                     SizedBox(height: 4.h),
 
@@ -289,6 +347,69 @@ class TeacherProfileScreen extends StatelessWidget {
         ],
       ),
       barrierDismissible: false,
+    );
+  }
+
+  void _showEditProfileDialog(BuildContext context, AuthController authController, user) {
+    final nameController = TextEditingController(text: user.fullName);
+    final nuptkController = TextEditingController(text: user.nuptk ?? '');
+    final institutionController = TextEditingController(text: user.institution ?? '');
+
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        title: Text('Edit Profil', style: AppStyles.headingS),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Nama Lengkap',
+                  labelStyle: AppStyles.bodyS,
+                ),
+              ),
+              SizedBox(height: 12.h),
+              TextField(
+                controller: nuptkController,
+                decoration: InputDecoration(
+                  labelText: 'NUPTK (Opsional)',
+                  labelStyle: AppStyles.bodyS,
+                ),
+              ),
+              SizedBox(height: 12.h),
+              TextField(
+                controller: institutionController,
+                decoration: InputDecoration(
+                  labelText: 'Institusi',
+                  labelStyle: AppStyles.bodyS,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text(AppStrings.buttonCancel),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Get.back();
+              if (nameController.text.isNotEmpty) {
+                await authController.updateProfileData(
+                  fullName: nameController.text,
+                  nuptk: nuptkController.text.isNotEmpty ? nuptkController.text : null,
+                  institution: institutionController.text.isNotEmpty ? institutionController.text : null,
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.secondary, foregroundColor: Colors.white),
+            child: Text(AppStrings.buttonSave),
+          ),
+        ],
+      ),
     );
   }
 }

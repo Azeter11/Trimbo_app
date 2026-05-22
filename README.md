@@ -169,23 +169,37 @@ lib/
 
 ## ⭐ Fitur Unggulan
 
-### Anti-Cheat Ujian
-File: `exam_controller.dart` + `exam_screen.dart`
+### 🛡️ Anti-Cheat Ujian Lanjutan
+Sistem keamanan ujian untuk mencegah kecurangan siswa saat mengerjakan tugas.
+- **Fullscreen mode**: Menggunakan antarmuka layar penuh.
+- **Deteksi Keluar Aplikasi (App Lifecycle)**: Terdeteksi jika siswa berpindah aplikasi.
+- **Deteksi Screenshot**: Sistem dapat mendeteksi percobaan screenshot layar (menggunakan `screenshot_callback`).
+- **3 Strike System**: Jika siswa keluar aplikasi atau melakukan screenshot hingga 3 kali, ujian akan **otomatis dikumpulkan (auto-submit)** dengan nilai 0.
+- **Auto-submit Timer**: Jika waktu habis, ujian otomatis terkirim.
 
-- **Fullscreen mode**: `SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive)`
-- **Deteksi keluar layar**: `WidgetsBindingObserver` + `didChangeAppLifecycleState`
-- **3 strike system**: Keluar 3x → auto-submit
-- **Auto-submit**: Timer habis → auto-submit dengan animasi
+### 🔔 Notifikasi Real-time (Firebase Cloud Messaging)
+- Siswa mendapatkan notifikasi *push* otomatis setiap kali guru menerbitkan tugas (assignment) baru.
 
-### Timer Countdown
-- Format MM:SS
-- Warna merah jika < 60 detik
-- Auto-submit saat 00:00
+### 🤖 Chatbot AI Assistant
+- Tersedia fitur Chatbot (pada dashboard siswa) untuk membantu menjawab pertanyaan atau memberikan panduan seputar pelajaran dan penggunaan aplikasi.
 
-### Kode Kelas
-- Auto-generate kode unik 6 karakter
-- Menghindari karakter ambigu (O, I, 0, 1)
-- Cek duplikat otomatis di Firestore
+### 👨‍🏫 Monitoring Mahasiswa Bimbingan (Dosen)
+- Fitur khusus dosen untuk memantau mahasiswa bimbingan skripsi (mengambil data dari database Firebase eksternal secara real-time).
+
+### 📊 Analitik & Export Nilai (PDF/Excel)
+- Guru dapat melihat grafik performa siswa dan mengekspor rekapitulasi nilai kelas ke format PDF maupun Excel.
+
+### ⏱️ Timer Countdown Ujian
+- Format MM:SS, berubah merah jika waktu tersisa < 60 detik.
+
+### 🔐 Manajemen Profil & Ganti Password
+- Fitur ganti password secara aman menggunakan re-autentikasi Firebase di halaman profil.
+
+### 🚪 Keluar Kelas (Leave Class)
+- Siswa dapat keluar dari kelas yang sudah tidak diikuti melalui halaman detail kelas.
+
+### 🔑 Kode Kelas Unik
+- Auto-generate 6 karakter bebas ambigu (O, I, 0, 1) untuk bergabung ke kelas.
 
 ---
 
@@ -237,21 +251,31 @@ File: `exam_controller.dart` + `exam_screen.dart`
 
 ---
 
-## 👥 Alur Penggunaan
+## 👥 Cara Penggunaan
 
-### Siswa
-1. Register → Verifikasi email → Login
-2. Gabung kelas (dengan kode dari guru)
-3. Lihat daftar tugas
-4. Kerjakan ujian (fullscreen, anti-cheat)
-5. Lihat hasil dan nilai
+### 🎓 Siswa
+1. **Pendaftaran**: Register → Verifikasi email → Login.
+2. **Dashboard**: Di layar utama, siswa bisa mengakses Chatbot AI untuk bertanya.
+3. **Manajemen Kelas**: Klik tombol Gabung Kelas (+), masukkan kode unik dari guru. Jika ingin keluar, tekan tombol **Leave Class** di dalam detail kelas.
+4. **Mengerjakan Tugas/Ujian**:
+   - Terima notifikasi saat ada tugas baru.
+   - Buka tugas dan mulai kerjakan.
+   - **Perhatian**: Jangan mencoba *screenshot* atau pindah aplikasi, batas peringatan adalah 3 kali sebelum nilai otomatis 0 (Anti-Cheat).
+5. **Melihat Hasil**: Cek hasil ujian di Result Screen dan rekapitulasi nilai di Grade Report.
+6. **Profil**: Ubah data atau ganti password melalui halaman profil.
 
-### Guru
-1. Register (dengan NIDN) → Login
-2. Buat kelas → Bagikan kode kelas ke siswa
-3. Buat tugas (info + soal)
-4. Terbitkan tugas
-5. Monitor nilai & analitik kelas
+### 👨‍🏫 Guru / Dosen
+1. **Pendaftaran**: Register menggunakan NIDN → Login.
+2. **Membuat Kelas**: Pada Dashboard, pilih buat kelas dan bagikan 6 karakter kode unik ke siswa.
+3. **Membuat Tugas**: 
+   - Masuk ke kelas, pilih "Buat Tugas".
+   - Isi informasi tugas, lalu "Tambah Soal".
+   - Setelah selesai, "Terbitkan" agar siswa mendapat notifikasi.
+4. **Monitoring Nilai & Analitik**:
+   - Lihat statistik jawaban benar/salah pada Analytics Screen.
+   - Lihat daftar nilai seluruh siswa (Student Grades) dan Export ke PDF/Excel.
+5. **Monitoring Mahasiswa Bimbingan**: Akses tab "Bimbingan" di menu Profil untuk memantau status pengerjaan skripsi mahasiswa bimbingan secara real-time.
+6. **Profil**: Kelola akun dan ganti kata sandi.
 
 ---
 

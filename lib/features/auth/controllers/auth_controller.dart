@@ -11,12 +11,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http; // Untuk upload ke Cloudinary
 import 'dart:convert'; // Untuk membaca hasil upload
 import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class AuthController extends GetxController {
   final FirebaseAuthService _authService = Get.find<FirebaseAuthService>();
 
   // ========================
-  // UPDATE PROFILE PICTURE (MENGGUNAKAN CLOUDINARY - ANTI BLOKIR)
+  // UPDATE PROFILE PICTURE (FIREBASE STORAGE DENGAN FALLBACK CLOUDINARY)
   // ========================
   Future<void> updateProfilePicture() async {
     final picker = ImagePicker();
@@ -28,50 +29,83 @@ class AuthController extends GetxController {
       try {
         File file = File(pickedFile.path);
         String uid = currentUser.value!.uid;
+        String photoUrl = '';
 
-        // 1. data Cloudinary
-        String cloudName = 'defhvwndv';
-        String uploadPreset = 'trimbo';
+        try {
+          // 1. Coba upload ke Firebase Storage terlebih dahulu
+          final storageRef = FirebaseStorage.instance.ref().child('profile_pictures/$uid.jpg');
+          final uploadTask = await storageRef.putFile(file);
+          photoUrl = await uploadTask.ref.getDownloadURL();
+        } catch (firebaseError) {
+          print('Firebase Storage upload failed: $firebaseError. Falling back to Cloudinary.');
+          
+          // 2. Fallback: Kirim gambar ke Cloudinary jika Firebase gagal/belum disetting
+          String cloudName = 'defhvwndv';
+          String uploadPreset = 'trimbo';
 
-        // 2. Kirim gambar ke Cloudinary
-        var request = http.MultipartRequest(
-            'POST',
-            Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload')
-        );
-        request.fields['upload_preset'] = uploadPreset;
-        request.files.add(await http.MultipartFile.fromPath('file', file.path));
+          var request = http.MultipartRequest(
+              'POST',
+              Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload')
+          );
+          request.fields['upload_preset'] = uploadPreset;
+          request.files.add(await http.MultipartFile.fromPath('file', file.path));
 
-        var response = await request.send();
-        var responseData = await response.stream.bytesToString();
-        var jsonResult = json.decode(responseData);
-
-        // Jika berhasil di-upload ke Cloudinary (status 200)
-        if (response.statusCode == 200) {
-
-          // Dapatkan URL gambar permanen (HTTPS) dari Cloudinary
-          String photoUrl = jsonResult['secure_url'];
-
-          // 3. Simpan URL tersebut ke Firestore pengguna kita
-          await FirebaseFirestore.instance.collection('users').doc(uid).update({
-            'photoUrl': photoUrl,
-          });
-
-          // 4. Update UI secara real-time
-          if (currentUser.value != null) {
-            currentUser.value!.photoUrl = photoUrl;
-            currentUser.refresh();
+          var response = await request.send();
+          if (response.statusCode == 200) {
+            var responseData = await response.stream.bytesToString();
+            var jsonResult = json.decode(responseData);
+            photoUrl = jsonResult['secure_url'];
+          } else {
+            throw Exception('Gagal upload gambar ke server.');
           }
-
-          _showSuccessSnackbar('Foto profil berhasil diperbarui!');
-        } else {
-          _showErrorSnackbar('Gagal: ${jsonResult['error']['message']}');
         }
 
+        // 3. Simpan URL tersebut ke Firestore pengguna kita
+        await FirebaseFirestore.instance.collection('users').doc(uid).update({
+          'photoUrl': photoUrl,
+        });
+
+        // 4. Update UI secara real-time
+        if (currentUser.value != null) {
+          currentUser.value!.photoUrl = photoUrl;
+          currentUser.refresh();
+        }
+
+        _showSuccessSnackbar('Foto profil berhasil diperbarui!');
+
       } catch (e) {
-        _showErrorSnackbar('Terjadi kesalahan koneksi internet: $e');
+        _showErrorSnackbar('Terjadi kesalahan: $e');
       } finally {
         isLoading.value = false;
       }
+    }
+  }
+
+  // ========================
+  // UPDATE PROFILE DATA (NAMA, DLL)
+  // ========================
+  Future<void> updateProfileData({required String fullName, String? nuptk, String? institution}) async {
+    if (currentUser.value == null) return;
+    isLoading.value = true;
+    try {
+      String uid = currentUser.value!.uid;
+      Map<String, dynamic> updateData = {'fullName': fullName};
+      if (nuptk != null) updateData['nuptk'] = nuptk;
+      if (institution != null) updateData['institution'] = institution;
+
+      await FirebaseFirestore.instance.collection('users').doc(uid).update(updateData);
+      
+      currentUser.value = currentUser.value!.copyWith(
+        fullName: fullName,
+        nuptk: nuptk,
+        institution: institution,
+      );
+
+      _showSuccessSnackbar('Profil berhasil diperbarui!');
+    } catch (e) {
+      _showErrorSnackbar('Gagal memperbarui profil: $e');
+    } finally {
+      isLoading.value = false;
     }
   }
 

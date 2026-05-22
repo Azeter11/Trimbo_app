@@ -140,8 +140,18 @@ class StudentProfileScreen extends StatelessWidget {
 
           SizedBox(height: 16.h),
 
-          // Nama
-          Text(user.fullName, style: AppStyles.headingS),
+          // Nama dan Tombol Edit
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(user.fullName, style: AppStyles.headingS),
+              SizedBox(width: 8.w),
+              GestureDetector(
+                onTap: () => _showEditProfileDialog(Get.find<AuthController>(), user),
+                child: Icon(Icons.edit, size: 18.sp, color: AppColors.primary),
+              ),
+            ],
+          ),
 
           SizedBox(height: 4.h),
 
@@ -360,6 +370,44 @@ class StudentProfileScreen extends StatelessWidget {
               backgroundColor: AppColors.error,
             ),
             child: Text(AppStrings.profileLogoutConfirmYes),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditProfileDialog(AuthController authController, user) {
+    final nameController = TextEditingController(text: user.fullName);
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        title: Text('Edit Profil', style: AppStyles.headingS),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: 'Nama Lengkap',
+                labelStyle: AppStyles.bodyS,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text(AppStrings.buttonCancel),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Get.back();
+              if (nameController.text.isNotEmpty) {
+                await authController.updateProfileData(fullName: nameController.text);
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+            child: Text(AppStrings.buttonSave),
           ),
         ],
       ),
