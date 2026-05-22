@@ -11,17 +11,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http; // Untuk upload ke Cloudinary
 import 'dart:convert'; // Untuk membaca hasil upload
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
 
 class AuthController extends GetxController {
   final FirebaseAuthService _authService = Get.find<FirebaseAuthService>();
 
   // ========================
-  // UPDATE PROFILE PICTURE (FIREBASE STORAGE DENGAN FALLBACK CLOUDINARY)
+  // UPDATE PROFILE PICTURE (CLOUDINARY)
+  // Foto profile disimpan di Cloudinary karena Firebase Storage
+  // membutuhkan konfigurasi bucket tersendiri.
   // ========================
   Future<void> updateProfilePicture() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 75, // Kompres agar upload lebih cepat
+      maxWidth: 512,
+      maxHeight: 512,
+    );
 
     if (pickedFile != null) {
       isLoading.value = true;
@@ -29,52 +35,45 @@ class AuthController extends GetxController {
       try {
         File file = File(pickedFile.path);
         String uid = currentUser.value!.uid;
-        String photoUrl = '';
 
-        try {
-          // 1. Coba upload ke Firebase Storage terlebih dahulu
-          final storageRef = FirebaseStorage.instance.ref().child('profile_pictures/$uid.jpg');
-          final uploadTask = await storageRef.putFile(file);
-          photoUrl = await uploadTask.ref.getDownloadURL();
-        } catch (firebaseError) {
-          print('Firebase Storage upload failed: $firebaseError. Falling back to Cloudinary.');
-          
-          // 2. Fallback: Kirim gambar ke Cloudinary jika Firebase gagal/belum disetting
-          String cloudName = 'defhvwndv';
-          String uploadPreset = 'trimbo';
+        // Upload ke Cloudinary
+        const String cloudName = 'defhvwndv';
+        const String uploadPreset = 'trimbo';
 
-          var request = http.MultipartRequest(
-              'POST',
-              Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload')
-          );
-          request.fields['upload_preset'] = uploadPreset;
-          request.files.add(await http.MultipartFile.fromPath('file', file.path));
+        var request = http.MultipartRequest(
+          'POST',
+          Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload'),
+        );
+        // Tag dengan UID agar mudah diidentifikasi
+        request.fields['upload_preset'] = uploadPreset;
+        request.fields['public_id'] = 'profile_$uid'; // Nama file tetap → overwrite otomatis
+        request.fields['folder'] = 'trimbo_profiles';
+        request.files.add(await http.MultipartFile.fromPath('file', file.path));
 
-          var response = await request.send();
-          if (response.statusCode == 200) {
-            var responseData = await response.stream.bytesToString();
-            var jsonResult = json.decode(responseData);
-            photoUrl = jsonResult['secure_url'];
-          } else {
-            throw Exception('Gagal upload gambar ke server.');
-          }
+        var response = await request.send();
+        var responseData = await response.stream.bytesToString();
+        var jsonResult = json.decode(responseData);
+
+        if (response.statusCode == 200) {
+          // Ambil URL aman (HTTPS) dari Cloudinary
+          String photoUrl = jsonResult['secure_url'];
+
+          // Simpan URL ke Firestore
+          await FirebaseFirestore.instance.collection('users').doc(uid).update({
+            'photoUrl': photoUrl,
+          });
+
+          // Update state lokal agar UI langsung berubah
+          currentUser.value = currentUser.value!.copyWith(photoUrl: photoUrl);
+
+          _showSuccessSnackbar('Foto profil berhasil diperbarui!');
+        } else {
+          final errorMsg = jsonResult['error']?['message'] ?? 'Upload gagal';
+          _showErrorSnackbar('Gagal upload: $errorMsg');
         }
-
-        // 3. Simpan URL tersebut ke Firestore pengguna kita
-        await FirebaseFirestore.instance.collection('users').doc(uid).update({
-          'photoUrl': photoUrl,
-        });
-
-        // 4. Update UI secara real-time
-        if (currentUser.value != null) {
-          currentUser.value!.photoUrl = photoUrl;
-          currentUser.refresh();
-        }
-
-        _showSuccessSnackbar('Foto profil berhasil diperbarui!');
 
       } catch (e) {
-        _showErrorSnackbar('Terjadi kesalahan: $e');
+        _showErrorSnackbar('Terjadi kesalahan koneksi: $e');
       } finally {
         isLoading.value = false;
       }
