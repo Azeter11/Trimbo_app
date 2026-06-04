@@ -47,6 +47,7 @@ dependencies:
   flutter_timezone:
     path: ./packages/flutter_timezone
   http: ^1.6.0
+  google_mobile_ads: ^8.0.0
 
 dev_dependencies:
   flutter_test:

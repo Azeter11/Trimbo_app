@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../controllers/student_controller.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../../core/constants/app_colors.dart';
@@ -13,8 +14,50 @@ import '../../../core/utils/helpers.dart';
 import '../../../core/widgets/loading_overlay.dart';
 import '../../../app/routes.dart';
 
-class StudentDashboardScreen extends StatelessWidget {
+class StudentDashboardScreen extends StatefulWidget {
   const StudentDashboardScreen({super.key});
+
+  @override
+  State<StudentDashboardScreen> createState() => _StudentDashboardScreenState();
+}
+
+class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
+  BannerAd? _bannerAd;
+  bool _isAdLoaded = false;
+  final String _adUnitId = 'ca-app-pub-3940256099942544/9214589741';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAd();
+  }
+
+  void _loadAd() {
+    _bannerAd = BannerAd(
+      adUnitId: _adUnitId,
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          if (mounted) {
+            setState(() {
+              _isAdLoaded = true;
+            });
+          }
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+          debugPrint('Ad failed to load: $error');
+        },
+      ),
+    )..load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +106,16 @@ class StudentDashboardScreen extends StatelessWidget {
           style: AppStyles.buttonText.copyWith(fontSize: 13.sp),
         ),
       ),
+      bottomNavigationBar: _isAdLoaded && _bannerAd != null
+          ? SafeArea(
+              child: Container(
+                width: double.infinity,
+                height: _bannerAd!.size.height.toDouble(),
+                alignment: Alignment.center,
+                child: AdWidget(ad: _bannerAd!),
+              ),
+            )
+          : null,
     );
   }
 
