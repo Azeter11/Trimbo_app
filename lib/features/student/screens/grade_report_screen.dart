@@ -12,6 +12,7 @@ import '../../../core/constants/app_styles.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../services/export_service.dart';
+import '../../../services/rewarded_ad_service.dart';
 
 class GradeReportScreen extends StatelessWidget {
   const GradeReportScreen({super.key});
@@ -20,6 +21,9 @@ class GradeReportScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final StudentController controller = Get.find<StudentController>();
     final ExportService exportService = ExportService();
+
+    // Muat iklan
+    RewardedAdService().loadAd();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -94,17 +98,21 @@ class GradeReportScreen extends StatelessWidget {
                       height: 48.h,
                       fontSize: 12.sp,
                       onPressed: () async {
-                        final error = await exportService.exportToPdf(
-                          submissions: controller.mySubmissions,
-                          assignmentTitle: 'Laporan Keseluruhan',
-                          className: 'Laporan Pribadi',
-                          isStudentReport: true,
+                        RewardedAdService().showAdConfirmationDialog(
+                          onRewardEarned: () async {
+                            final error = await exportService.exportToPdf(
+                              submissions: controller.mySubmissions,
+                              assignmentTitle: 'Laporan Keseluruhan',
+                              className: 'Laporan Pribadi',
+                              isStudentReport: true,
+                            );
+                            if (error != null) {
+                              Get.snackbar('Error', error,
+                                  backgroundColor: AppColors.error,
+                                  colorText: Colors.white);
+                            }
+                          },
                         );
-                        if (error != null) {
-                          Get.snackbar('Error', error,
-                              backgroundColor: AppColors.error,
-                              colorText: Colors.white);
-                        }
                       },
                       leadingIcon: Icons.picture_as_pdf_rounded,
                       backgroundColor: AppColors.error,
@@ -117,17 +125,21 @@ class GradeReportScreen extends StatelessWidget {
                       height: 48.h,
                       fontSize: 12.sp,
                       onPressed: () async {
-                        final error = await exportService.exportToExcel(
-                          submissions: controller.mySubmissions,
-                          assignmentTitle: 'Laporan Keseluruhan',
-                          className: 'Laporan Pribadi',
-                          isStudentReport: true,
+                        RewardedAdService().showAdConfirmationDialog(
+                          onRewardEarned: () async {
+                            final error = await exportService.exportToExcel(
+                              submissions: controller.mySubmissions,
+                              assignmentTitle: 'Laporan Keseluruhan',
+                              className: 'Laporan Pribadi',
+                              isStudentReport: true,
+                            );
+                            if (error != null) {
+                              Get.snackbar('Error', error,
+                                  backgroundColor: AppColors.error,
+                                  colorText: Colors.white);
+                            }
+                          },
                         );
-                        if (error != null) {
-                          Get.snackbar('Error', error,
-                              backgroundColor: AppColors.error,
-                              colorText: Colors.white);
-                        }
                       },
                       leadingIcon: Icons.table_chart_rounded,
                       backgroundColor: AppColors.success,

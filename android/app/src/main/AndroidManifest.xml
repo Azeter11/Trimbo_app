@@ -10,7 +10,7 @@
         android:label="Trimbo"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
-                <!-- Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713 -->
+        <!-- Test AdMob App ID (Safe untuk Development & Testing) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-3940256099942544~3347511713"/>

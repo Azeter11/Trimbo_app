@@ -24,6 +24,7 @@ class StudentDashboardScreen extends StatefulWidget {
 class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   BannerAd? _bannerAd;
   bool _isAdLoaded = false;
+  // Test Banner Ad Unit ID (Safe untuk Development & Testing)
   final String _adUnitId = 'ca-app-pub-3940256099942544/9214589741';
 
   @override

@@ -12,6 +12,7 @@ import '../../../core/constants/app_styles.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../services/export_service.dart';
+import '../../../services/rewarded_ad_service.dart';
 
 class StudentGradesScreen extends StatefulWidget {
   const StudentGradesScreen({super.key});
@@ -29,6 +30,9 @@ class _StudentGradesScreenState extends State<StudentGradesScreen> {
     super.initState();
     assignment = Get.arguments as AssignmentModel;
     
+    // Muat iklan saat halaman dibuka
+    RewardedAdService().loadAd();
+
     // Muat nilai saat halaman dibuka (hanya sekali)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.loadAssignmentSubmissions(assignment.id);
@@ -137,17 +141,21 @@ class _StudentGradesScreenState extends State<StudentGradesScreen> {
                       height: 44.h,
                       fontSize: 12.sp,
                       onPressed: () async {
-                        final exportService = ExportService();
-                        final error = await exportService.exportToPdf(
-                          submissions: submissions,
-                          assignmentTitle: assignment.title,
-                          className: 'ID Kelas: ${assignment.classId}',
+                        RewardedAdService().showAdConfirmationDialog(
+                          onRewardEarned: () async {
+                            final exportService = ExportService();
+                            final error = await exportService.exportToPdf(
+                              submissions: submissions,
+                              assignmentTitle: assignment.title,
+                              className: 'ID Kelas: ${assignment.classId}',
+                            );
+                            if (error != null) {
+                              Get.snackbar('Error', error,
+                                  backgroundColor: AppColors.error,
+                                  colorText: Colors.white);
+                            }
+                          },
                         );
-                        if (error != null) {
-                          Get.snackbar('Error', error,
-                              backgroundColor: AppColors.error,
-                              colorText: Colors.white);
-                        }
                       },
                       backgroundColor: AppColors.error,
                       leadingIcon: Icons.picture_as_pdf_rounded,
@@ -160,17 +168,21 @@ class _StudentGradesScreenState extends State<StudentGradesScreen> {
                       height: 44.h,
                       fontSize: 12.sp,
                       onPressed: () async {
-                        final exportService = ExportService();
-                        final error = await exportService.exportToExcel(
-                          submissions: submissions,
-                          assignmentTitle: assignment.title,
-                          className: 'ID Kelas: ${assignment.classId}',
+                        RewardedAdService().showAdConfirmationDialog(
+                          onRewardEarned: () async {
+                            final exportService = ExportService();
+                            final error = await exportService.exportToExcel(
+                              submissions: submissions,
+                              assignmentTitle: assignment.title,
+                              className: 'ID Kelas: ${assignment.classId}',
+                            );
+                            if (error != null) {
+                              Get.snackbar('Error', error,
+                                  backgroundColor: AppColors.error,
+                                  colorText: Colors.white);
+                            }
+                          },
                         );
-                        if (error != null) {
-                          Get.snackbar('Error', error,
-                              backgroundColor: AppColors.error,
-                              colorText: Colors.white);
-                        }
                       },
                       backgroundColor: AppColors.success,
                       leadingIcon: Icons.table_chart_rounded,

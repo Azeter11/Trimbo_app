@@ -281,3 +281,432 @@ Sistem keamanan ujian untuk mencegah kecurangan siswa saat mengerjakan tugas.
 
 *EduTask — Belajar Lebih Terstruktur* 🎓
 
+---
+
+## 📱 Implementasi Google AdMob
+
+### 📖 Penjelasan Lengkap AdMob
+
+Aplikasi ini menggunakan **Google AdMob** untuk menampilkan iklan dan menghasilkan revenue. Ada dua jenis iklan yang diimplementasikan:
+
+1. **Banner Ad** - Iklan banner yang ditampilkan di bagian bawah Dashboard Siswa
+2. **Rewarded Ad** - Iklan video yang harus ditonton untuk membuka fitur ekspor (PDF/Excel)
+
+---
+
+### 🎯 Dimana Kode AdMob Bekerja?
+
+#### 1. **Banner Ad (Iklan Banner)**
+**Lokasi**: `lib/features/student/screens/student_dashboard_screen.dart`
+
+**Cara Kerja**:
+- Banner Ad dimuat saat halaman dashboard siswa dibuka (`initState`)
+- Ditampilkan di bagian bawah layar menggunakan `bottomNavigationBar`
+- Otomatis reload jika gagal
+
+**Kode Penting**:
+```dart
+// Inisialisasi Banner Ad
+BannerAd? _bannerAd;
+bool _isAdLoaded = false;
+final String _adUnitId = 'ca-app-pub-3940256099942544/9214589741'; // ID Test
+
+// Load iklan saat screen dibuka
+@override
+void initState() {
+  super.initState();
+  _loadAd();
+}
+
+// Fungsi untuk load banner
+void _loadAd() {
+  _bannerAd = BannerAd(
+    adUnitId: _adUnitId,
+    size: AdSize.banner,
+    request: const AdRequest(),
+    listener: BannerAdListener(
+      onAdLoaded: (ad) {
+        setState(() => _isAdLoaded = true);
+      },
+      onAdFailedToLoad: (ad, error) {
+        ad.dispose();
+      },
+    ),
+  )..load();
+}
+
+// Tampilkan di bottomNavigationBar
+bottomNavigationBar: _isAdLoaded && _bannerAd != null
+    ? SafeArea(
+        child: Container(
+          width: double.infinity,
+          height: _bannerAd!.size.height.toDouble(),
+          child: AdWidget(ad: _bannerAd!),
+        ),
+      )
+    : null,
+```
+
+---
+
+#### 2. **Rewarded Ad (Iklan Video Reward)**
+**Lokasi**: `lib/services/rewarded_ad_service.dart`
+
+**Cara Kerja**:
+- Service singleton yang dapat dipanggil dari mana saja
+- Menampilkan dialog konfirmasi sebelum menampilkan iklan
+- Iklan video harus ditonton hingga selesai
+- Setelah selesai, callback `onRewardEarned` akan dijalankan (untuk ekspor file)
+- Otomatis reload iklan baru setelah selesai
+
+**Kode Penting**:
+```dart
+// Singleton service
+class RewardedAdService {
+  static final RewardedAdService _instance = RewardedAdService._internal();
+  factory RewardedAdService() => _instance;
+  
+  RewardedAd? _rewardedAd;
+  
+  // Load rewarded ad
+  void loadAd() {
+    final String adUnitId = Platform.isAndroid
+        ? 'ca-app-pub-3940256099942544/5224354917'  // Test ID Android
+        : 'ca-app-pub-3940256099942544/1712485313'; // Test ID iOS
+    
+    RewardedAd.load(
+      adUnitId: adUnitId,
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          _rewardedAd = ad;
+        },
+      ),
+    );
+  }
+  
+  // Tampilkan dialog konfirmasi + iklan
+  void showAdConfirmationDialog({
+    required VoidCallback onRewardEarned,
+  }) {
+    // Dialog konfirmasi
+    Get.dialog(...);
+    
+    // Setelah konfirmasi, tampilkan iklan
+    _rewardedAd!.show(
+      onUserEarnedReward: (ad, reward) {
+        onRewardEarned(); // Panggil fungsi ekspor
+      },
+    );
+  }
+}
+```
+
+**Contoh Penggunaan** (di Student Grades Screen):
+```dart
+// Inisialisasi service di initState
+final rewardedAdService = RewardedAdService();
+rewardedAdService.loadAd();
+
+// Panggil saat button ekspor ditekan
+rewardedAdService.showAdConfirmationDialog(
+  onRewardEarned: () {
+    // Fungsi ekspor PDF/Excel dijalankan setelah iklan selesai
+    ExportService.exportGradesToPDF(...);
+  },
+);
+```
+
+---
+
+### 🔧 Setup AdMob di Proyek
+
+#### 1. **Konfigurasi AndroidManifest.xml**
+**Lokasi**: `android/app/src/main/AndroidManifest.xml`
+
+Tambahkan App ID AdMob di dalam tag `<application>`:
+```xml
+<application ...>
+    <!-- AdMob App ID -->
+    <meta-data
+        android:name="com.google.android.gms.ads.APPLICATION_ID"
+        android:value="ca-app-pub-3940256099942544~3347511713"/>
+    ...
+</application>
+```
+
+⚠️ **PENTING**: `ca-app-pub-3940256099942544~3347511713` adalah **ID TEST** dari Google.
+
+---
+
+#### 2. **Dependency di pubspec.yaml**
+**Lokasi**: `pubspec.yaml`
+
+Pastikan package `google_mobile_ads` sudah ditambahkan:
+```yaml
+dependencies:
+  google_mobile_ads: ^8.0.0
+```
+
+Jalankan:
+```bash
+flutter pub get
+```
+
+---
+
+#### 3. **Inisialisasi AdMob di main.dart**
+**Lokasi**: `lib/main.dart`
+
+Tambahkan inisialisasi sebelum `runApp()`:
+```dart
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inisialisasi AdMob
+  await MobileAds.instance.initialize();
+  
+  await Firebase.initializeApp(...);
+  runApp(MyApp());
+}
+```
+
+---
+
+### 🆔 Cara Mendapatkan Kode "ca-app-pub-..." yang Asli
+
+Saat ini, aplikasi menggunakan **Ad Unit ID Test** dari Google. Untuk produksi (rilis), Anda harus mengganti dengan **ID asli** dari akun AdMob Anda.
+
+#### **Langkah-langkah Lengkap**:
+
+#### **Langkah 1: Buat Akun Google AdMob**
+1. Buka [https://admob.google.com](https://admob.google.com)
+2. Login dengan akun Google Anda
+3. Klik **"Get Started"** atau **"Mulai"**
+4. Setujui Terms of Service
+5. Pilih negara dan timezone
+6. Klik **"Continue to AdMob"**
+
+---
+
+#### **Langkah 2: Tambahkan Aplikasi Baru**
+1. Di dashboard AdMob, klik **"Apps"** di sidebar
+2. Klik **"Add App"** atau **"Tambah Aplikasi"**
+3. Pilih **"No"** (karena aplikasi belum di Play Store/App Store)
+4. Pilih platform: **Android** atau **iOS**
+5. Masukkan nama aplikasi: **"Trimbo"** atau **"EduTask"**
+6. Centang checkbox persetujuan
+7. Klik **"Add"** atau **"Tambah"**
+
+---
+
+#### **Langkah 3: Dapatkan App ID**
+Setelah aplikasi ditambahkan, Anda akan mendapatkan:
+```
+App ID: ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY
+```
+
+**Format**:
+- `ca-app-pub-` = prefix tetap
+- `XXXXXXXXXXXXXXXX` = ID unik akun AdMob Anda (16 digit angka)
+- `~YYYYYYYYYY` = ID unik aplikasi Anda (10 digit angka)
+
+**Contoh**:
+```
+ca-app-pub-1234567890123456~9876543210
+```
+
+⚠️ **PENTING**: Simpan App ID ini, Anda akan menggunakannya di `AndroidManifest.xml`
+
+---
+
+#### **Langkah 4: Buat Ad Unit (Unit Iklan)**
+Setelah aplikasi dibuat, Anda perlu membuat **Ad Unit** untuk setiap jenis iklan:
+
+##### **A. Banner Ad Unit**
+1. Masuk ke aplikasi yang baru dibuat
+2. Klik **"Ad units"** tab
+3. Klik **"Add Ad Unit"** atau **"Tambah Unit Iklan"**
+4. Pilih format: **"Banner"**
+5. Beri nama: **"Student Dashboard Banner"**
+6. Klik **"Create Ad Unit"** atau **"Buat Unit Iklan"**
+7. **Salin Ad Unit ID yang muncul**:
+   ```
+   ca-app-pub-XXXXXXXXXXXXXXXX/1111111111
+   ```
+
+##### **B. Rewarded Ad Unit**
+1. Klik **"Add Ad Unit"** lagi
+2. Pilih format: **"Rewarded"** atau **"Iklan Berhadiah"**
+3. Beri nama: **"Export Grades Reward"**
+4. Klik **"Create Ad Unit"**
+5. **Salin Ad Unit ID yang muncul**:
+   ```
+   ca-app-pub-XXXXXXXXXXXXXXXX/2222222222
+   ```
+
+---
+
+### 🔄 Cara Mengganti ID Test dengan ID Asli
+
+Setelah mendapatkan ID asli dari AdMob, ganti di 3 tempat:
+
+#### **1. AndroidManifest.xml** (App ID)
+**File**: `android/app/src/main/AndroidManifest.xml`
+
+**Ganti**:
+```xml
+<!-- SEBELUM (Test ID) -->
+<meta-data
+    android:name="com.google.android.gms.ads.APPLICATION_ID"
+    android:value="ca-app-pub-3940256099942544~3347511713"/>
+```
+
+**Menjadi**:
+```xml
+<!-- SESUDAH (ID Asli Anda) -->
+<meta-data
+    android:name="com.google.android.gms.ads.APPLICATION_ID"
+    android:value="ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY"/>
+```
+
+---
+
+#### **2. student_dashboard_screen.dart** (Banner Ad Unit ID)
+**File**: `lib/features/student/screens/student_dashboard_screen.dart`
+
+**Cari baris ini** (sekitar baris 26):
+```dart
+final String _adUnitId = 'ca-app-pub-3940256099942544/9214589741';
+```
+
+**Ganti dengan Banner Ad Unit ID Anda**:
+```dart
+final String _adUnitId = 'ca-app-pub-XXXXXXXXXXXXXXXX/1111111111';
+```
+
+---
+
+#### **3. rewarded_ad_service.dart** (Rewarded Ad Unit ID)
+**File**: `lib/services/rewarded_ad_service.dart`
+
+**Cari baris ini** (sekitar baris 19-21):
+```dart
+final String adUnitId = Platform.isAndroid
+    ? 'ca-app-pub-3940256099942544/5224354917'
+    : 'ca-app-pub-3940256099942544/1712485313';
+```
+
+**Ganti dengan Rewarded Ad Unit ID Anda**:
+```dart
+final String adUnitId = Platform.isAndroid
+    ? 'ca-app-pub-XXXXXXXXXXXXXXXX/2222222222'  // Android Rewarded
+    : 'ca-app-pub-XXXXXXXXXXXXXXXX/3333333333'; // iOS Rewarded (jika ada)
+```
+
+---
+
+### 📊 ID Test vs ID Asli
+
+| Tipe | ID Test (Sampel) | ID Asli (Produksi) |
+|------|------------------|-------------------|
+| **App ID** | `ca-app-pub-3940256099942544~3347511713` | `ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY` |
+| **Banner Android** | `ca-app-pub-3940256099942544/9214589741` | `ca-app-pub-XXXXXXXXXXXXXXXX/1111111111` |
+| **Rewarded Android** | `ca-app-pub-3940256099942544/5224354917` | `ca-app-pub-XXXXXXXXXXXXXXXX/2222222222` |
+| **Rewarded iOS** | `ca-app-pub-3940256099942544/1712485313` | `ca-app-pub-XXXXXXXXXXXXXXXX/3333333333` |
+
+---
+
+### ⚠️ Penting untuk Diketahui
+
+1. **Test ID hanya untuk Development**
+   - Gunakan Test ID saat development dan testing
+   - ❌ JANGAN gunakan Test ID di aplikasi yang sudah rilis ke Play Store/App Store
+   - ✅ Ganti dengan ID asli sebelum build production/release
+
+2. **Kebijakan Google AdMob**
+   - ❌ JANGAN klik iklan Anda sendiri (bisa banned)
+   - ❌ JANGAN minta user untuk klik iklan
+   - ✅ Gunakan Test Ads saat development
+   - ✅ Ikuti [AdMob Policies](https://support.google.com/admob/answer/6128543)
+
+3. **Revenue/Pendapatan**
+   - Iklan Test **TIDAK menghasilkan uang**
+   - Hanya ID asli yang bisa menghasilkan revenue
+   - Payment threshold: $100 (akan dibayar saat mencapai $100)
+
+4. **Iklan Tidak Muncul?**
+   - Pastikan internet aktif
+   - Pastikan App ID dan Ad Unit ID sudah benar
+   - AdMob butuh waktu 24-48 jam untuk aktivasi akun baru
+   - Cek log error dengan: `flutter run --verbose`
+
+---
+
+### 🧪 Testing AdMob
+
+#### **Test dengan Test ID (Recommended saat Development)**
+```dart
+// Banner Test ID
+'ca-app-pub-3940256099942544/9214589741'
+
+// Rewarded Test ID
+'ca-app-pub-3940256099942544/5224354917'
+```
+
+#### **Test dengan ID Asli**
+1. Tambahkan device testing Anda di AdMob Console:
+   - Buka **Settings** > **Test Devices**
+   - Tambah device ID Anda
+2. Atau gunakan Test Ads mode:
+   ```dart
+   final adRequest = AdRequest(
+     testDevices: ['YOUR_DEVICE_ID'], // Device ID dari log
+   );
+   ```
+
+---
+
+### 📝 Checklist Sebelum Rilis
+
+- [ ] Buat akun Google AdMob
+- [ ] Tambahkan aplikasi di AdMob Console
+- [ ] Dapatkan App ID (`ca-app-pub-...~...`)
+- [ ] Buat Banner Ad Unit dan dapatkan ID-nya
+- [ ] Buat Rewarded Ad Unit dan dapatkan ID-nya
+- [ ] Ganti App ID di `AndroidManifest.xml`
+- [ ] Ganti Banner Ad Unit ID di `student_dashboard_screen.dart`
+- [ ] Ganti Rewarded Ad Unit ID di `rewarded_ad_service.dart`
+- [ ] Test iklan berfungsi dengan baik
+- [ ] Pastikan tidak ada Test ID yang tersisa
+- [ ] Build APK/AAB untuk production
+
+---
+
+### 🔗 Referensi & Resource
+
+- [Google AdMob Official](https://admob.google.com)
+- [AdMob Flutter Plugin Docs](https://pub.dev/packages/google_mobile_ads)
+- [AdMob Policies](https://support.google.com/admob/answer/6128543)
+- [Test Ads Documentation](https://developers.google.com/admob/android/test-ads)
+- [AdMob Help Center](https://support.google.com/admob)
+
+---
+
+## 🔐 File Penting: ADMOB_IDs.md
+
+File `ADMOB_IDs.md` berisi **ID AdMob Production** Anda yang asli. File ini:
+- ✅ Sudah ditambahkan ke `.gitignore` (tidak akan ter-commit ke Git)
+- ✅ Berisi ID Test dan Production untuk referensi
+- ✅ Berisi panduan migrasi dari Test → Production
+- ⚠️ **JANGAN share file ini ke publik**
+
+**Saat ini aplikasi menggunakan Test ID** (aman untuk development).  
+**Untuk rilis production**, ikuti panduan di file `ADMOB_IDs.md`.
+
+---
+
+*EduTask — Belajar Lebih Terstruktur* 🎓
+
