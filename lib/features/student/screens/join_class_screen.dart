@@ -1,10 +1,12 @@
 // join_class_screen.dart
 // Halaman untuk siswa bergabung ke kelas menggunakan kode 6 karakter.
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../controllers/student_controller.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
@@ -25,8 +27,46 @@ class _JoinClassScreenState extends State<JoinClassScreen> {
   final _codeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  NativeAd? _nativeAd;
+  bool _nativeAdIsLoaded = false;
+
+  final String _adUnitId = Platform.isAndroid
+      ? 'ca-app-pub-3940256099942544/2247696110'
+      : 'ca-app-pub-3940256099942544/3986624511';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAd();
+  }
+
+  void _loadAd() {
+    _nativeAd = NativeAd(
+        adUnitId: _adUnitId,
+        listener: NativeAdListener(
+          onAdLoaded: (ad) {
+            debugPrint('$NativeAd loaded.');
+            if (mounted) {
+              setState(() {
+                _nativeAdIsLoaded = true;
+              });
+            }
+          },
+          onAdFailedToLoad: (ad, error) {
+            debugPrint('$NativeAd failedToLoad: $error');
+            ad.dispose();
+          },
+        ),
+        request: const AdRequest(),
+        nativeTemplateStyle: NativeTemplateStyle(
+            templateType: TemplateType.small,
+        ))
+      ..load();
+  }
+
   @override
   void dispose() {
+    _nativeAd?.dispose();
     _codeController.dispose();
     super.dispose();
   }
@@ -156,6 +196,19 @@ class _JoinClassScreenState extends State<JoinClassScreen> {
                       ],
                     ),
                   ),
+
+                  if (_nativeAdIsLoaded && _nativeAd != null) ...[
+                    SizedBox(height: 24.h),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        minWidth: 320, // minimum recommended width
+                        minHeight: 90, // minimum recommended height
+                        maxWidth: 400,
+                        maxHeight: 200,
+                      ),
+                      child: AdWidget(ad: _nativeAd!),
+                    ),
+                  ],
                 ],
               ),
             ),

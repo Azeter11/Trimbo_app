@@ -2,10 +2,12 @@
 // Halaman buat kelas baru oleh guru.
 // Setelah berhasil, tampilkan dialog dengan kode kelas.
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../controllers/teacher_controller.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
@@ -15,8 +17,56 @@ import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_textfield.dart';
 import '../../../core/widgets/loading_overlay.dart';
 
-class CreateClassScreen extends StatelessWidget {
+class CreateClassScreen extends StatefulWidget {
   const CreateClassScreen({super.key});
+
+  @override
+  State<CreateClassScreen> createState() => _CreateClassScreenState();
+}
+
+class _CreateClassScreenState extends State<CreateClassScreen> {
+  NativeAd? _nativeAd;
+  bool _nativeAdIsLoaded = false;
+
+  final String _adUnitId = Platform.isAndroid
+      ? 'ca-app-pub-3940256099942544/2247696110'
+      : 'ca-app-pub-3940256099942544/3986624511';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAd();
+  }
+
+  void _loadAd() {
+    _nativeAd = NativeAd(
+        adUnitId: _adUnitId,
+        listener: NativeAdListener(
+          onAdLoaded: (ad) {
+            debugPrint('$NativeAd loaded.');
+            if (mounted) {
+              setState(() {
+                _nativeAdIsLoaded = true;
+              });
+            }
+          },
+          onAdFailedToLoad: (ad, error) {
+            debugPrint('$NativeAd failedToLoad: $error');
+            ad.dispose();
+          },
+        ),
+        request: const AdRequest(),
+        nativeTemplateStyle: NativeTemplateStyle(
+            templateType: TemplateType.small,
+        ))
+      ..load();
+  }
+
+  @override
+  void dispose() {
+    _nativeAd?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,6 +187,19 @@ class CreateClassScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+
+                  if (_nativeAdIsLoaded && _nativeAd != null) ...[
+                    SizedBox(height: 24.h),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        minWidth: 320, // minimum recommended width
+                        minHeight: 90, // minimum recommended height
+                        maxWidth: 400,
+                        maxHeight: 200,
+                      ),
+                      child: AdWidget(ad: _nativeAd!),
+                    ),
+                  ],
                 ],
               ),
             ),

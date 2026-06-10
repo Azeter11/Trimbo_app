@@ -9,6 +9,7 @@ import '../../auth/controllers/auth_controller.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_styles.dart';
+import '../../../services/interstitial_ad_service.dart';
 import 'supervised_students_screen.dart';
 
 class TeacherProfileScreen extends StatelessWidget {
@@ -198,10 +199,17 @@ class TeacherProfileScreen extends StatelessWidget {
                 icon: Icons.people_alt_rounded,
                 title: 'Lihat Mahasiswa Bimbingan',
                 subtitle: 'Data dari sistem monitoring skripsi',
-                onTap: () => Get.to(
-                  () => const SupervisedStudentsScreen(),
-                  transition: Transition.rightToLeft,
-                ),
+                onTap: () {
+                  // Tampilkan Interstitial Ad sebelum berpindah halaman
+                  InterstitialAdService().showAd(
+                    onAdDismissed: () {
+                      Get.to(
+                        () => const SupervisedStudentsScreen(),
+                        transition: Transition.rightToLeft,
+                      );
+                    },
+                  );
+                },
                 showBadge: true,
               ),
 

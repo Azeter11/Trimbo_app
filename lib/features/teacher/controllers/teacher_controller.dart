@@ -9,6 +9,7 @@ import '../../student/models/class_model.dart';
 import '../../student/models/assignment_model.dart';
 import '../../student/models/submission_model.dart';
 import '../../../services/firestore_service.dart';
+import '../../../services/interstitial_ad_service.dart';
 import '../../../app/routes.dart';
 
 class TeacherController extends GetxController {
@@ -55,6 +56,10 @@ class TeacherController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    
+    // Inisialisasi Interstitial Ad
+    InterstitialAdService().loadAd();
+
     // Muat data saat pengguna tersedia
     if (_authController.currentUser.value != null) {
       loadDashboardData();
