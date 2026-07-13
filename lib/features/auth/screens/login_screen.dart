@@ -227,97 +227,21 @@ class LoginScreen extends StatelessWidget {
 }
 
 // ========================
-// GOOGLE ICON (CustomPainter)
+// GOOGLE ICON (Image Asset)
 // ========================
 
-/// Widget ikon Google 'G' berwarna resmi, digambar dengan CustomPainter.
-/// Tidak memerlukan aset gambar — murni vektor Flutter, tajam di semua resolusi.
+/// Widget ikon Google menggunakan file PNG resmi agar tampil lebih profesional.
 class _GoogleIcon extends StatelessWidget {
   final double size;
   const _GoogleIcon({this.size = 20});
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Image.asset(
+      'assets/icons/icon_google.png',
       width: size,
       height: size,
-      child: CustomPaint(painter: _GooglePainter()),
+      fit: BoxFit.contain,
     );
   }
-}
-
-class _GooglePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    final r = size.width / 2;
-
-    // ---- Latar bulat putih (opsional background, dikomentari agar transparan) ----
-
-    // === Lingkaran merah ===
-    final paintRed = Paint()..color = const Color(0xFFEA4335);
-    // === Lingkaran biru ===
-    final paintBlue = Paint()..color = const Color(0xFF4285F4);
-    // === Lingkaran hijau ===
-    final paintGreen = Paint()..color = const Color(0xFF34A853);
-    // === Lingkaran kuning ===
-    final paintYellow = Paint()..color = const Color(0xFFFBBC05);
-
-    // Gambar arc untuk membentuk huruf G menggunakan path
-    // (Simplified 4-color G logo)
-
-    // Biru: kiri atas → sudut 210° ke 330° (area biru kanan)
-    final path = Path();
-
-    // Garis biru horizontal kanan (bar tengah G)
-    final barY = cy - r * 0.05;
-    final barRight = cx + r;
-    final barLeft = cx + r * 0.08;
-    final barH = r * 0.3;
-
-    // Gambar arc lingkaran luar dengan 4 warna
-    // Merah: 270° → 360° + sedikit (atas dan kanan atas)
-    // Kuning: kiri bawah
-    // Hijau: bawah
-    // Biru: kiri atas + bar
-
-    // Gunakan arc segment
-    void drawArc(Paint paint, double startDeg, double sweepDeg) {
-      final rect = Rect.fromCircle(center: Offset(cx, cy), radius: r * 0.95);
-      final p = Path()
-        ..moveTo(cx, cy)
-        ..arcTo(
-          rect,
-          startDeg * (3.14159 / 180),
-          sweepDeg * (3.14159 / 180),
-          false,
-        )
-        ..close();
-      canvas.drawPath(p, paint);
-    }
-
-    // Merah: atas (315° → 45° = 90° span)
-    drawArc(paintRed, -45, 90);
-    // Kuning: kiri atas (45° → 135°)
-    drawArc(paintYellow, 45, 90);
-    // Hijau: bawah (135° → 225°)
-    drawArc(paintGreen, 135, 90);
-    // Biru: kiri bawah + bar (225° → 315°)
-    drawArc(paintBlue, 225, 90);
-
-    // Lubang tengah (warna putih untuk membentuk huruf G)
-    final hole = Paint()..color = Colors.white;
-    canvas.drawCircle(Offset(cx, cy), r * 0.55, hole);
-
-    // Bar horizontal biru (kanan)
-    final barPaint = Paint()..color = const Color(0xFF4285F4);
-    canvas.drawRect(
-      Rect.fromLTRB(cx - r * 0.05, barY, barRight, barY + barH),
-      barPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
