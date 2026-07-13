@@ -234,6 +234,40 @@ class _ExamPage extends StatelessWidget {
                           style: AppStyles.questionText,
                         ),
 
+                        if (currentQuestion.imageUrl != null) ...[
+                          SizedBox(height: 16.h),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12.r),
+                            child: Image.network(
+                              currentQuestion.imageUrl!,
+                              width: double.infinity,
+                              fit: BoxFit.contain,
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Container(
+                                  height: 200.h,
+                                  width: double.infinity,
+                                  color: AppColors.cardBackground,
+                                  child: const Center(child: CircularProgressIndicator()),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                height: 200.h,
+                                width: double.infinity,
+                                color: AppColors.cardBackground,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.broken_image_rounded, color: AppColors.textTertiary, size: 40.sp),
+                                    SizedBox(height: 8.h),
+                                    Text('Gagal memuat gambar', style: AppStyles.bodyS.copyWith(color: AppColors.textTertiary)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+
                         SizedBox(height: 24.h),
 
                         // Pilihan jawaban A, B, C, D

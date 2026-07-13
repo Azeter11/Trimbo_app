@@ -324,12 +324,22 @@ class StudentController extends GetxController {
 
   /// Buka halaman ujian untuk suatu tugas.
   void openExam(AssignmentModel assignment) {
-    Get.toNamed(
-      AppRoutes.exam,
-      arguments: {
-        'assignment': assignment,
-        'student': _authController.currentUser.value,
-      },
-    );
+    if (assignment.type == 'essay') {
+      Get.toNamed(
+        AppRoutes.essayExam, // We need to define this route
+        arguments: {
+          'assignment': assignment,
+          'student': _authController.currentUser.value,
+        },
+      );
+    } else {
+      Get.toNamed(
+        AppRoutes.exam,
+        arguments: {
+          'assignment': assignment,
+          'student': _authController.currentUser.value,
+        },
+      );
+    }
   }
 }

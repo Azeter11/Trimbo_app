@@ -5,20 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/user_model.dart';
 import '../../../services/firebase_auth_service.dart';
+import '../../../services/firebase_storage_service.dart';
 import '../../../app/routes.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:http/http.dart' as http; // Untuk upload ke Cloudinary
-import 'dart:convert'; // Untuk membaca hasil upload
 import 'dart:io';
 
 class AuthController extends GetxController {
   final FirebaseAuthService _authService = Get.find<FirebaseAuthService>();
 
   // ========================
-  // UPDATE PROFILE PICTURE (CLOUDINARY)
-  // Foto profile disimpan di Cloudinary karena Firebase Storage
-  // membutuhkan konfigurasi bucket tersendiri.
+  // UPDATE PROFILE PICTURE (FIREBASE STORAGE)
+  // Menggunakan Firebase Storage untuk konsistensi
   // ========================
   Future<void> updateProfilePicture() async {
     final picker = ImagePicker();
@@ -36,28 +34,17 @@ class AuthController extends GetxController {
         File file = File(pickedFile.path);
         String uid = currentUser.value!.uid;
 
-        // Upload ke Cloudinary
-        const String cloudName = 'defhvwndv';
-        const String uploadPreset = 'trimbo';
+        // Generate nama file unik
+        String fileName = 'profile_${uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-        var request = http.MultipartRequest(
-          'POST',
-          Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload'),
+        // Upload ke Firebase Storage menggunakan service
+        String? photoUrl = await FirebaseStorageService.uploadImage(
+          fileName: fileName,
+          file: file,
+          folder: 'profile_images',
         );
-        // Tag dengan UID agar mudah diidentifikasi
-        request.fields['upload_preset'] = uploadPreset;
-        request.fields['public_id'] = 'profile_$uid'; // Nama file tetap → overwrite otomatis
-        request.fields['folder'] = 'trimbo_profiles';
-        request.files.add(await http.MultipartFile.fromPath('file', file.path));
 
-        var response = await request.send();
-        var responseData = await response.stream.bytesToString();
-        var jsonResult = json.decode(responseData);
-
-        if (response.statusCode == 200) {
-          // Ambil URL aman (HTTPS) dari Cloudinary
-          String photoUrl = jsonResult['secure_url'];
-
+        if (photoUrl != null) {
           // Simpan URL ke Firestore
           await FirebaseFirestore.instance.collection('users').doc(uid).update({
             'photoUrl': photoUrl,
@@ -68,12 +55,11 @@ class AuthController extends GetxController {
 
           _showSuccessSnackbar('Foto profil berhasil diperbarui!');
         } else {
-          final errorMsg = jsonResult['error']?['message'] ?? 'Upload gagal';
-          _showErrorSnackbar('Gagal upload: $errorMsg');
+          _showErrorSnackbar('Gagal mengupload foto profil. Coba lagi.');
         }
 
       } catch (e) {
-        _showErrorSnackbar('Terjadi kesalahan koneksi: $e');
+        _showErrorSnackbar('Terjadi kesalahan: $e');
       } finally {
         isLoading.value = false;
       }
@@ -172,26 +158,35 @@ class AuthController extends GetxController {
   // CEK USER LOGIN
   // ========================
   Future<void> checkCurrentUser() async {
-    final firebaseUser = _authService.currentUser;
+    try {
+      final firebaseUser = _authService.currentUser;
 
-    if (firebaseUser != null) {
-      await firebaseUser.reload();
-      final refreshedUser = _authService.currentUser;
+      if (firebaseUser != null) {
+        // Beri timeout agar tidak menggantung selamanya jika ada kendala koneksi/autentikasi (seperti SHA mismatch)
+        await firebaseUser.reload().timeout(const Duration(seconds: 5));
+        final refreshedUser = _authService.currentUser;
 
-      if (refreshedUser == null || !refreshedUser.emailVerified) {
-        Get.offAllNamed(AppRoutes.login);
-        return;
-      }
+        if (refreshedUser == null || !refreshedUser.emailVerified) {
+          Get.offAllNamed(AppRoutes.login);
+          return;
+        }
 
-      final userData = await _authService.getUserData(refreshedUser.uid);
+        final userData = await _authService
+            .getUserData(refreshedUser.uid)
+            .timeout(const Duration(seconds: 5));
 
-      if (userData != null) {
-        currentUser.value = userData;
-        _navigateByRole(userData);
+        if (userData != null) {
+          currentUser.value = userData;
+          _navigateByRole(userData);
+        } else {
+          Get.offAllNamed(AppRoutes.login);
+        }
       } else {
         Get.offAllNamed(AppRoutes.login);
       }
-    } else {
+    } catch (e) {
+      // Jika terjadi error/timeout koneksi, arahkan ke login agar pengguna tidak stuck di splash screen
+      debugPrint("Error checkCurrentUser: $e");
       Get.offAllNamed(AppRoutes.login);
     }
   }

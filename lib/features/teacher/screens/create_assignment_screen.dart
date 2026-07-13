@@ -72,6 +72,36 @@ class CreateAssignmentScreen extends StatelessWidget {
 
                   SizedBox(height: 16.h),
 
+                  // Tipe Tugas Dropdown
+                  Text('Tipe Tugas', style: AppStyles.labelL),
+                  SizedBox(height: 8.h),
+                  Obx(
+                    () => Container(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceSecondary,
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: controller.selectedType.value,
+                          isExpanded: true,
+                          icon: Icon(Icons.arrow_drop_down_rounded, color: AppColors.textSecondary),
+                          items: const [
+                            DropdownMenuItem(value: 'quiz', child: Text('Pilihan Ganda')),
+                            DropdownMenuItem(value: 'essay', child: Text('Essay (Upload PDF)')),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) controller.selectedType.value = value;
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(height: 16.h),
+
                   // Deadline picker
                   _buildDeadlinePicker(context, controller),
 

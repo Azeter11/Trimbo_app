@@ -1,0 +1,65 @@
+// Firebase Storage Security Rules untuk Trimbo App (VERSI TERBARU - INTEGRASI ACADEMIC ATELIER)
+// =========================================================================================
+// PERUBAHAN UTAMA:
+// 1. Menyelaraskan aturan penulisan (write) pada folder 'essay_submissions' agar dapat
+//    ditulis tanpa login (allow write: if true) demi mendukung integrasi Academic Atelier,
+//    tetapi tetap membatasi tipe file hanya PDF (application/pdf) dan batas ukuran maksimal 10MB.
+// 2. Melonggarkan pembacaan (read) gambar profil dan essay agar bisa diakses oleh tamu/integrator.
+//
+// CARA APPLY KE FIREBASE CONSOLE:
+// 1. Buka: https://console.firebase.google.com
+// 2. Pilih project Anda
+// 3. Klik "Storage" di sidebar kiri
+// 4. Klik tab "Rules"
+// 5. Hapus semua aturan yang ada
+// 6. Copy paste seluruh isi file ini (mulai dari rules_version di bawah)
+// 7. Klik "Publish"
+// =========================================================================================
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // ===== ATURAN UNTUK ESSAY SUBMISSIONS (PDF) =====
+    match /essay_submissions/{fileName} {
+      // Diizinkan tulis untuk umum (tamu/integrasi) dengan validasi tipe PDF & ukuran maks 10MB
+      allow write: if request.resource.contentType == 'application/pdf'
+                   && request.resource.size <= 10 * 1024 * 1024;
+      
+      // Buka akses baca umum agar dosen/sistem integrasi bisa menilai berkas PDF
+      allow read: if true;
+    }
+    
+    // ===== ATURAN UNTUK QUESTION IMAGES (Gambar Soal) =====
+    match /question_images/{fileName} {
+      allow write: if request.auth != null 
+                   && request.resource.contentType.matches('image/.*')
+                   && request.resource.size <= 5 * 1024 * 1024;
+      allow read: if true;
+    }
+    
+    // ===== ATURAN UNTUK WORD DOCUMENTS (Generate Soal) =====
+    match /word_documents/{fileName} {
+      allow write: if request.auth != null 
+                   && (request.resource.contentType == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                       || request.resource.contentType == 'application/msword'
+                       || request.resource.contentType == 'application/octet-stream')
+                   && request.resource.size <= 20 * 1024 * 1024;
+      allow read: if request.auth != null;
+    }
+    
+    // ===== ATURAN UNTUK PROFILE IMAGES =====
+    match /profile_images/{fileName} {
+      // Izinkan tulis umum untuk foto profil (mendukung pendaftaran pengguna baru)
+      allow write: if request.resource.contentType.matches('image/.*')
+                   && request.resource.size <= 5 * 1024 * 1024;
+      allow read: if true;
+    }
+    
+    // ===== ATURAN DEFAULT (DENY SEMUA) =====
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

@@ -28,6 +28,7 @@ import '../features/student/screens/student_dashboard_screen.dart';
 import '../features/student/screens/join_class_screen.dart';
 import '../features/student/screens/class_detail_screen.dart';
 import '../features/student/screens/exam_screen.dart';
+import '../features/student/screens/essay_exam_screen.dart';
 import '../features/student/screens/result_screen.dart';
 import '../features/student/screens/grade_report_screen.dart';
 import '../features/student/screens/student_profile_screen.dart';
@@ -44,6 +45,7 @@ import '../features/teacher/screens/student_grades_screen.dart';
 import '../features/teacher/screens/analytics_screen.dart';
 import '../features/teacher/screens/teacher_profile_screen.dart';
 import '../features/teacher/screens/teacher_class_list_screen.dart';
+import '../features/teacher/screens/preview_imported_questions_screen.dart';
 
 class TrimboApp extends StatelessWidget {
   const TrimboApp({super.key});
@@ -133,6 +135,11 @@ class TrimboApp extends StatelessWidget {
               transition: Transition.fade,
             ),
             GetPage(
+              name: AppRoutes.essayExam,
+              page: () => const EssayExamScreen(),
+              transition: Transition.fade,
+            ),
+            GetPage(
               name: AppRoutes.result,
               page: () => const ResultScreen(),
               transition: Transition.zoom,
@@ -202,6 +209,11 @@ class TrimboApp extends StatelessWidget {
             GetPage(
               name: AppRoutes.teacherClassList,
               page: () => const TeacherClassListScreen(),
+              transition: Transition.rightToLeft,
+            ),
+            GetPage(
+              name: AppRoutes.previewImportedQuestions,
+              page: () => const PreviewImportedQuestionsScreen(),
               transition: Transition.rightToLeft,
             ),
           ],

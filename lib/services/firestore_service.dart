@@ -231,6 +231,7 @@ class FirestoreService {
     required String description,
     required DateTime deadline,
     required int durationMinutes,
+    String type = 'quiz',
   }) async {
     try {
       final docRef = await _db.collection(_assignmentsCollection).add({
@@ -242,6 +243,7 @@ class FirestoreService {
         'durationMinutes': durationMinutes,
         'totalQuestions': 0,
         'isPublished': false,
+        'type': type,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -254,6 +256,7 @@ class FirestoreService {
         deadline: deadline,
         durationMinutes: durationMinutes,
         totalQuestions: 0,
+        type: type,
         createdAt: DateTime.now(),
       );
 
@@ -393,6 +396,7 @@ class FirestoreService {
     required String optionD,
     required String correctAnswer,
     String? explanation,
+    String? imageUrl,
   }) async {
     try {
       final docRef = await _db.collection(_questionsCollection).add({
@@ -405,6 +409,7 @@ class FirestoreService {
         'optionD': optionD.trim(),
         'correctAnswer': correctAnswer.toUpperCase(),
         'explanation': explanation?.trim(),
+        'imageUrl': imageUrl,
       });
 
       final question = QuestionModel(
@@ -418,6 +423,7 @@ class FirestoreService {
         optionD: optionD.trim(),
         correctAnswer: correctAnswer.toUpperCase(),
         explanation: explanation?.trim(),
+        imageUrl: imageUrl,
       );
 
       return (question: question, error: null);
@@ -462,6 +468,7 @@ class FirestoreService {
     required List<QuestionModel> questions,
     required int warningCount,
     required bool isAutoSubmitted,
+    String? fileUrl,
   }) async {
     try {
       // Hitung nilai
@@ -494,6 +501,7 @@ class FirestoreService {
         'skippedCount': skipped,
         'warningCount': warningCount,
         'isAutoSubmitted': isAutoSubmitted,
+        'fileUrl': fileUrl,
         'submittedAt': FieldValue.serverTimestamp(),
       });
 
@@ -557,12 +565,24 @@ class FirestoreService {
           .map((doc) => SubmissionModel.fromMap(doc.data(), doc.id))
           .toList();
 
-      // Sortir berdasarkan waktu pengumpulan terbaru
       submissions.sort((a, b) => b.submittedAt.compareTo(a.submittedAt));
       return submissions;
     } catch (e) {
       print('Firestore error (getStudentSubmissions): $e');
       return [];
+    }
+  }
+
+  /// Update nilai submission secara manual (terutama untuk essay)
+  Future<String?> updateSubmissionScore(String submissionId, double newScore) async {
+    try {
+      await _db.collection(_submissionsCollection).doc(submissionId).update({
+        'score': newScore,
+      });
+      return null;
+    } catch (e) {
+      print('Firestore error (updateSubmissionScore): $e');
+      return 'Gagal mengupdate nilai. Coba lagi.';
     }
   }
 }

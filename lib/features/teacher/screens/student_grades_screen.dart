@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../controllers/teacher_controller.dart';
 import '../../student/models/assignment_model.dart';
+import '../../student/models/submission_model.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_styles.dart';
@@ -289,11 +290,29 @@ class _StudentGradesScreenState extends State<StudentGradesScreen> {
                         // Nilai
                         SizedBox(
                           width: 44.w,
-                          child: Text(
-                            s.score.toStringAsFixed(1),
-                            style: AppStyles.labelL.copyWith(color: scoreColor),
-                            textAlign: TextAlign.center,
-                          ),
+                          child: assignment.type == 'essay'
+                              ? InkWell(
+                                  onTap: () {
+                                    _showEditScoreDialog(context, s);
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(vertical: 4.h),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: AppColors.primary.withOpacity(0.5), width: 1),
+                                      borderRadius: BorderRadius.circular(4.r),
+                                    ),
+                                    child: Text(
+                                      s.score == 0 ? '-' : s.score.toStringAsFixed(1),
+                                      style: AppStyles.labelL.copyWith(color: AppColors.primary),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                )
+                              : Text(
+                                  s.score.toStringAsFixed(1),
+                                  style: AppStyles.labelL.copyWith(color: scoreColor),
+                                  textAlign: TextAlign.center,
+                                ),
                         ),
                         // Grade
                         SizedBox(
@@ -325,6 +344,53 @@ class _StudentGradesScreenState extends State<StudentGradesScreen> {
           ),
         );
         }),
+      ),
+    );
+  }
+
+  void _showEditScoreDialog(BuildContext context, SubmissionModel submission) {
+    final TextEditingController scoreController = TextEditingController(
+      text: submission.score == 0 ? '' : submission.score.toString(),
+    );
+
+    Get.dialog(
+      AlertDialog(
+        title: Text('Input Nilai Essay', style: AppStyles.headingS),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Siswa: ${submission.studentName}', style: AppStyles.bodyM),
+            SizedBox(height: 16.h),
+            TextField(
+              controller: scoreController,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: 'Nilai (0 - 100)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newScore = double.tryParse(scoreController.text);
+              if (newScore != null && newScore >= 0 && newScore <= 100) {
+                Get.back();
+                controller.updateSubmissionScore(submission.id, assignment.id, newScore);
+              } else {
+                Get.snackbar('Input tidak valid', 'Masukkan angka antara 0 dan 100',
+                    backgroundColor: Colors.red, colorText: Colors.white);
+              }
+            },
+            child: const Text('Simpan'),
+          ),
+        ],
       ),
     );
   }

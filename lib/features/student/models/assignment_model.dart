@@ -12,6 +12,7 @@ class AssignmentModel {
   final String teacherId;    // UID guru pembuat
   final DateTime createdAt;
   final bool isPublished;    // Sudah diterbitkan atau masih draft
+  final String type;         // Tipe tugas: 'quiz' atau 'essay'
 
   const AssignmentModel({
     required this.id,
@@ -24,6 +25,7 @@ class AssignmentModel {
     required this.teacherId,
     required this.createdAt,
     this.isPublished = false,
+    this.type = 'quiz',
   });
 
   /// Cek apakah deadline sudah lewat
@@ -48,6 +50,7 @@ class AssignmentModel {
           ? (map['createdAt'] as dynamic).toDate()
           : DateTime.now(),
       isPublished: map['isPublished'] ?? false,
+      type: map['type'] ?? 'quiz',
     );
   }
 
@@ -62,6 +65,7 @@ class AssignmentModel {
       'teacherId': teacherId,
       'createdAt': createdAt,
       'isPublished': isPublished,
+      'type': type,
     };
   }
 
@@ -72,6 +76,7 @@ class AssignmentModel {
     int? durationMinutes,
     int? totalQuestions,
     bool? isPublished,
+    String? type,
   }) {
     return AssignmentModel(
       id: id,
@@ -84,6 +89,7 @@ class AssignmentModel {
       teacherId: teacherId,
       createdAt: createdAt,
       isPublished: isPublished ?? this.isPublished,
+      type: type ?? this.type,
     );
   }
 }

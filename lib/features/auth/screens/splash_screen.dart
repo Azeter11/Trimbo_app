@@ -53,8 +53,12 @@ class _SplashScreenState extends State<SplashScreen>
 
   /// Tunggu sebentar, lalu cek status login via AuthController.
   Future<void> _initApp() async {
-    // Inisialisasi service notifikasi
-    await Get.find<NotificationService>().initialize();
+    try {
+      // Inisialisasi service notifikasi dengan timeout agar tidak menghambat loading utama
+      await Get.find<NotificationService>().initialize().timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint("Gagal inisialisasi NotificationService: $e");
+    }
     
     await Future.delayed(const Duration(seconds: 3));
     // Panggil fungsi cek login secara eksplisit agar splash muncul saat logout juga

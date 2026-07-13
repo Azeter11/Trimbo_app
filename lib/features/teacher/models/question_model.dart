@@ -12,6 +12,7 @@ class QuestionModel {
   final String optionD;      // Pilihan D
   final String correctAnswer; // Jawaban benar: 'A', 'B', 'C', atau 'D'
   final String? explanation;  // Penjelasan jawaban (opsional, untuk pembahasan)
+  final String? imageUrl;     // URL gambar soal (opsional)
 
   const QuestionModel({
     required this.id,
@@ -24,6 +25,7 @@ class QuestionModel {
     required this.optionD,
     required this.correctAnswer,
     this.explanation,
+    this.imageUrl,
   });
 
   /// Ambil teks pilihan berdasarkan huruf ('A', 'B', 'C', 'D')
@@ -52,6 +54,7 @@ class QuestionModel {
       optionD: map['optionD'] ?? '',
       correctAnswer: map['correctAnswer'] ?? 'A',
       explanation: map['explanation'],
+      imageUrl: map['imageUrl'],
     );
   }
 
@@ -66,6 +69,7 @@ class QuestionModel {
       'optionD': optionD,
       'correctAnswer': correctAnswer,
       'explanation': explanation,
+      'imageUrl': imageUrl,
     };
   }
 
@@ -78,6 +82,7 @@ class QuestionModel {
     String? optionD,
     String? correctAnswer,
     String? explanation,
+    String? imageUrl,
   }) {
     return QuestionModel(
       id: id,
@@ -90,6 +95,7 @@ class QuestionModel {
       optionD: optionD ?? this.optionD,
       correctAnswer: correctAnswer ?? this.correctAnswer,
       explanation: explanation ?? this.explanation,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 }

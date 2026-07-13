@@ -2,6 +2,7 @@
 // Halaman untuk membuat soal-soal ujian (step 2 dari pembuatan tugas).
 // Fitur: list soal yang sudah dibuat, form tambah soal, pilih jawaban benar.
 
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -44,7 +45,39 @@ class CreateQuestionScreen extends StatelessWidget {
                       // Header info
                       _buildHeader(controller),
 
-                      SizedBox(height: 20.h),
+                      SizedBox(height: 14.h),
+
+                      // Tombol Import dari Word (hanya untuk quiz)
+                      Obx(() {
+                        final isQuiz = controller.currentAssignment.value?.type != 'essay';
+                        if (!isQuiz) return const SizedBox.shrink();
+                        return Container(
+                          width: double.infinity,
+                          margin: EdgeInsets.only(bottom: 20.h),
+                          child: OutlinedButton.icon(
+                            onPressed: () => controller.showImportRulesDialog(),
+                            icon: Icon(Icons.upload_file_rounded,
+                                size: 20.sp, color: AppColors.primary),
+                            label: Text(
+                              'Import dari Word (.docx)',
+                              style: AppStyles.labelL.copyWith(
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: 14.h),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                              side: BorderSide(
+                                color: AppColors.primary.withOpacity(0.5),
+                                width: 1.5,
+                              ),
+                              backgroundColor: AppColors.primaryLight,
+                            ),
+                          ),
+                        );
+                      }),
 
                       // List soal yang sudah dibuat
                       if (controller.questions.isNotEmpty) ...[
@@ -141,6 +174,55 @@ class CreateQuestionScreen extends StatelessWidget {
 
           SizedBox(height: 16.h),
 
+          // Upload Gambar Soal (Opsional)
+          Obx(() {
+            if (controller.selectedImageFile.value == null) {
+              return Padding(
+                padding: EdgeInsets.only(bottom: 16.h),
+                child: OutlinedButton.icon(
+                  onPressed: controller.pickQuestionImage,
+                  icon: const Icon(Icons.image_outlined),
+                  label: Text('Tambah Gambar (Opsional)', style: AppStyles.labelL.copyWith(color: AppColors.primary)),
+                  style: OutlinedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                    side: BorderSide(color: AppColors.primary.withOpacity(0.5)),
+                  ),
+                ),
+              );
+            } else {
+              return Container(
+                margin: EdgeInsets.only(bottom: 16.h),
+                padding: EdgeInsets.all(12.w),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(10.r),
+                  color: AppColors.surfaceSecondary,
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.image_rounded, color: AppColors.success, size: 24.sp),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Text(
+                        'Gambar Dipilih',
+                        style: AppStyles.bodyM,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, color: AppColors.error),
+                      onPressed: controller.removeSelectedImage,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+              );
+            }
+          }),
+
           // Teks pertanyaan
           CustomTextField(
             label: AppStrings.questionText,
@@ -153,102 +235,112 @@ class CreateQuestionScreen extends StatelessWidget {
 
           SizedBox(height: 16.h),
 
-          // 4 pilihan jawaban
-          ...[
-            ('A', controller.optionAController, AppStrings.optionA),
-            ('B', controller.optionBController, AppStrings.optionB),
-            ('C', controller.optionCController, AppStrings.optionC),
-            ('D', controller.optionDController, AppStrings.optionD),
-          ].map(
-            (item) => Padding(
-              padding: EdgeInsets.only(bottom: 12.h),
-              child: Row(
-                children: [
-                  // Badge huruf pilihan
-                  Container(
-                    width: 36.w,
-                    height: 36.h,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                    child: Center(
-                      child: Text(
-                        item.$1,
-                        style: AppStyles.labelL.copyWith(
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 10.w),
-                  Expanded(
-                    child: CustomTextField(
-                      label: item.$3,
-                      hint: 'Masukkan pilihan ${item.$1}',
-                      controller: item.$2,
-                      validator: Validators.required,
-                      textInputAction: TextInputAction.next,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          // 4 pilihan jawaban & Pilih jawaban benar (HANYA UNTUK QUIZ)
+          Obx(() {
+            final isEssay = controller.currentAssignment.value?.type == 'essay';
+            if (isEssay) {
+              return const SizedBox.shrink(); // Sembunyikan untuk essay
+            }
 
-          SizedBox(height: 16.h),
-
-          // Pilih jawaban benar
-          Text(AppStrings.correctAnswer, style: AppStyles.labelL),
-
-          SizedBox(height: 8.h),
-
-          Obx(
-            () => Row(
-              children: ['A', 'B', 'C', 'D'].map((option) {
-                final isSelected =
-                    controller.selectedCorrectAnswer.value == option;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () =>
-                        controller.selectedCorrectAnswer.value = option,
-                    child: Container(
-                      margin: EdgeInsets.only(
-                        right: option != 'D' ? 8.w : 0,
-                      ),
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.primary
-                            : AppColors.cardBackground,
-                        borderRadius: BorderRadius.circular(10.r),
-                        border: Border.all(
-                          color: isSelected
-                              ? AppColors.primary
-                              : AppColors.border,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            option,
-                            style: AppStyles.labelL.copyWith(
-                              color: isSelected
-                                  ? Colors.white
-                                  : AppColors.textPrimary,
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ...[
+                  ('A', controller.optionAController, AppStrings.optionA),
+                  ('B', controller.optionBController, AppStrings.optionB),
+                  ('C', controller.optionCController, AppStrings.optionC),
+                  ('D', controller.optionDController, AppStrings.optionD),
+                ].map(
+                  (item) => Padding(
+                    padding: EdgeInsets.only(bottom: 12.h),
+                    child: Row(
+                      children: [
+                        // Badge huruf pilihan
+                        Container(
+                          width: 36.w,
+                          height: 36.h,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryLight,
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                          child: Center(
+                            child: Text(
+                              item.$1,
+                              style: AppStyles.labelL.copyWith(
+                                color: AppColors.primary,
+                              ),
                             ),
                           ),
-                          if (isSelected)
-                            Icon(Icons.check_rounded,
-                                size: 14.sp, color: Colors.white),
-                        ],
-                      ),
+                        ),
+                        SizedBox(width: 10.w),
+                        Expanded(
+                          child: CustomTextField(
+                            label: item.$3,
+                            hint: 'Masukkan pilihan ${item.$1}',
+                            controller: item.$2,
+                            validator: Validators.required,
+                            textInputAction: TextInputAction.next,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              }).toList(),
-            ),
-          ),
+                ),
+
+                SizedBox(height: 16.h),
+
+                // Pilih jawaban benar
+                Text(AppStrings.correctAnswer, style: AppStyles.labelL),
+
+                SizedBox(height: 8.h),
+
+                Row(
+                  children: ['A', 'B', 'C', 'D'].map((option) {
+                    final isSelected =
+                        controller.selectedCorrectAnswer.value == option;
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () =>
+                            controller.selectedCorrectAnswer.value = option,
+                        child: Container(
+                          margin: EdgeInsets.only(
+                            right: option != 'D' ? 8.w : 0,
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: 12.h),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.cardBackground,
+                            borderRadius: BorderRadius.circular(10.r),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.border,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                option,
+                                style: AppStyles.labelL.copyWith(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppColors.textPrimary,
+                                ),
+                              ),
+                              if (isSelected)
+                                Icon(Icons.check_rounded,
+                                    size: 14.sp, color: Colors.white),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            );
+          }),
 
           SizedBox(height: 20.h),
 
@@ -348,10 +440,11 @@ class _QuestionCard extends StatelessWidget {
                   style: AppStyles.bodyM,
                 ),
                 SizedBox(height: 4.h),
-                Text(
-                  'Jawaban: ${question.correctAnswer}',
-                  style: AppStyles.bodyS.copyWith(color: AppColors.success),
-                ),
+                if (question.optionA.isNotEmpty)
+                  Text(
+                    'Jawaban: ${question.correctAnswer}',
+                    style: AppStyles.bodyS.copyWith(color: AppColors.success),
+                  ),
               ],
             ),
           ),

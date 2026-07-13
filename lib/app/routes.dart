@@ -23,6 +23,7 @@ class AppRoutes {
   static const String classDetail = '/student/class-detail';
   static const String assignmentList = '/student/assignments';
   static const String exam = '/student/exam';
+  static const String essayExam = '/student/essay-exam';
   static const String result = '/student/result';
   static const String gradeReport = '/student/grades';
   static const String studentProfile = '/student/profile';
@@ -40,4 +41,5 @@ class AppRoutes {
   static const String analytics = '/teacher/analytics';
   static const String teacherProfile = '/teacher/profile';
   static const String teacherClassList = '/teacher/classes';
+  static const String previewImportedQuestions = '/teacher/preview-imported-questions';
 }

@@ -15,6 +15,7 @@ class SubmissionModel {
   final DateTime submittedAt;         // Waktu pengumpulan
   final bool isAutoSubmitted;         // true jika dikumpulkan otomatis (waktu habis/anti-cheat)
   final int warningCount;             // Jumlah kali keluar dari layar ujian
+  final String? fileUrl;              // URL file PDF jawaban (untuk tugas essay)
 
   const SubmissionModel({
     required this.id,
@@ -30,6 +31,7 @@ class SubmissionModel {
     required this.submittedAt,
     this.isAutoSubmitted = false,
     this.warningCount = 0,
+    this.fileUrl,
   });
 
   /// Grade huruf berdasarkan nilai
@@ -64,6 +66,7 @@ class SubmissionModel {
           : DateTime.now(),
       isAutoSubmitted: map['isAutoSubmitted'] ?? false,
       warningCount: map['warningCount'] ?? 0,
+      fileUrl: map['fileUrl'],
     );
   }
 
@@ -86,6 +89,7 @@ class SubmissionModel {
       'submittedAt': submittedAt,
       'isAutoSubmitted': isAutoSubmitted,
       'warningCount': warningCount,
+      'fileUrl': fileUrl,
     };
   }
 }

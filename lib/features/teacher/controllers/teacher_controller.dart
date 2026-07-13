@@ -154,6 +154,25 @@ class TeacherController extends GetxController {
     }
   }
 
+  /// Update nilai manual (khusus essay)
+  Future<void> updateSubmissionScore(String submissionId, String assignmentId, double newScore) async {
+    isLoading.value = true;
+    try {
+      final error = await _firestoreService.updateSubmissionScore(submissionId, newScore);
+      if (error != null) {
+        Get.snackbar('Gagal', error, backgroundColor: Colors.red, colorText: Colors.white);
+      } else {
+        // Refresh nilai
+        await loadAssignmentSubmissions(assignmentId);
+        Get.snackbar('Berhasil', 'Nilai berhasil diperbarui', backgroundColor: Colors.green, colorText: Colors.white);
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Terjadi kesalahan sistem', backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   // ========================
   // STATISTIK DASHBOARD
   // ========================

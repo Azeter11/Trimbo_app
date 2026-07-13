@@ -5,7 +5,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'firebase_options.dart';
 import 'app/app.dart';
 
 /// Fungsi utama yang dijalankan pertama kali saat app dibuka.
@@ -15,7 +17,13 @@ Future<void> main() async {
 
   // ====== INISIALISASI FIREBASE ======
   // Harus dilakukan sebelum menggunakan Firebase Auth, Firestore, dsb.
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // ====== INISIALISASI ADMOB ======
+  // Inisialisasi AdMob sebelum app dijalankan
+  await MobileAds.instance.initialize();
 
   // ====== INISIALISASI LOCALE INDONESIA ======
   // Agar DateFormat menggunakan nama bulan/hari bahasa Indonesia
