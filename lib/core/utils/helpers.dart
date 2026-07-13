@@ -4,7 +4,7 @@
 
 import 'dart:math';
 import 'package:intl/intl.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 class Helpers {
   Helpers._();
 
@@ -144,5 +144,27 @@ class Helpers {
   /// Format nilai dengan 1 desimal: 85.567 → "85.6"
   static String formatScore(double score) {
     return score.toStringAsFixed(1);
+  }
+
+  // ========================
+  // BUKA URL
+  // ========================
+
+  /// Buka URL (misalnya PDF tugas) di browser eksternal atau aplikasi default
+  static Future<void> openUrl(String url) async {
+    String finalUrl = url;
+    
+    // Jika URL berupa PDF, gunakan Google Docs Viewer agar bisa dibuka di browser Android/iOS
+    // tanpa membutuhkan PDF reader internal atau terhambat rendering PDF bawaan browser hp.
+    if (url.toLowerCase().contains('.pdf')) {
+      finalUrl = 'https://docs.google.com/gview?embedded=true&url=${Uri.encodeComponent(url)}';
+    }
+
+    final uri = Uri.parse(finalUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 }

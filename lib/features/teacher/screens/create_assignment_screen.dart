@@ -105,10 +105,14 @@ class CreateAssignmentScreen extends StatelessWidget {
                   // Deadline picker
                   _buildDeadlinePicker(context, controller),
 
-                  SizedBox(height: 16.h),
-
-                  // Durasi slider
-                  _buildDurationSlider(controller),
+                  Obx(() => controller.selectedType.value == 'essay' 
+                      ? const SizedBox.shrink() 
+                      : Column(
+                          children: [
+                            SizedBox(height: 16.h),
+                            _buildDurationSlider(controller),
+                          ],
+                        )),
 
                   SizedBox(height: 32.h),
 

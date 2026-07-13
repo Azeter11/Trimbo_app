@@ -13,7 +13,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../student/models/assignment_model.dart';
 import '../models/question_model.dart';
 import '../../../services/firestore_service.dart';
-import '../../../services/firebase_storage_service.dart';
+import '../../../services/cloudinary_service.dart';
 import '../../../services/notification_service.dart';
 import '../../../services/docx_parser_service.dart';
 import '../../../app/routes.dart';
@@ -168,7 +168,7 @@ class AssignmentController extends GetxController {
       if (selectedImageFile.value != null || _imageBytes != null) {
         final String fileName = '${currentAssignment.value!.id}_q${orderNumber}_${DateTime.now().millisecondsSinceEpoch}.jpg';
         
-        imageUrl = await FirebaseStorageService.uploadImage(
+        imageUrl = await CloudinaryService.uploadImage(
           fileName: fileName,
           file: selectedImageFile.value?.path == 'virtual_path.jpg' ? null : selectedImageFile.value,
           bytes: _imageBytes,

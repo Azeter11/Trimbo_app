@@ -228,7 +228,9 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
                   if (submission != null) {
                     Get.snackbar(
                       'Sudah Dikerjakan',
-                      'Nilai Anda: ${submission.score.toStringAsFixed(1)} (${submission.grade})',
+                      submission.isGraded
+                          ? 'Nilai Anda: ${submission.score.toStringAsFixed(1)} (${submission.grade})'
+                          : 'Tugas telah dikumpulkan dan sedang menunggu penilaian guru.',
                       backgroundColor: AppColors.success,
                       colorText: Colors.white,
                     );

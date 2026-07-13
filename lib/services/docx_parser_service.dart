@@ -147,17 +147,18 @@ class DocxParserService {
     // kadang menghasilkan "1\tteks" → setelah _cleanLine menjadi "1 teks")
     final questionStartRegex = RegExp(r'^\d+[\.\)\s]\s*(.+)');
 
-    // Mendukung: "A. teks", "A) teks" (case-insensitive, sudah ternormalisasi
-    // dari full-width oleh _cleanLine)
-    final optionARegex = RegExp(r'^[Aa][\.\)]\s*(.+)');
-    final optionBRegex = RegExp(r'^[Bb][\.\)]\s*(.+)');
-    final optionCRegex = RegExp(r'^[Cc][\.\)]\s*(.+)');
-    final optionDRegex = RegExp(r'^[Dd][\.\)]\s*(.+)');
+    // Mendukung: "A. teks", "A) teks" dan juga "1. teks" (karena fitur auto-numbering
+    // MS Word seringkali dikonversi menjadi "1. " oleh library docx_to_text)
+    final optionARegex = RegExp(r'^([Aa]|1)[\.\)]\s*(.+)');
+    final optionBRegex = RegExp(r'^([Bb]|2)[\.\)]\s*(.+)');
+    final optionCRegex = RegExp(r'^([Cc]|3)[\.\)]\s*(.+)');
+    final optionDRegex = RegExp(r'^([Dd]|4)[\.\)]\s*(.+)');
 
     // Mendukung berbagai format kunci jawaban (case-insensitive):
     // "Jawaban: A", "jawaban a", "Kunci: B", "Kunci Jawaban: C", dll.
+    // Juga mendukung format angka (1=A, 2=B, 3=C, 4=D) jika user salah ketik akibat auto-numbering.
     final answerRegex = RegExp(
-      r'^(?:kunci\s*jawaban|jawaban|kunci)\s*[:=\-]?\s*([A-Da-d])',
+      r'^(?:kunci\s*jawaban|jawaban|kunci)\s*[:=\-]?\s*([A-Da-d1-4])',
       caseSensitive: false,
     );
 
@@ -210,7 +211,9 @@ class DocxParserService {
         final match = regex.firstMatch(lines[i]);
         if (match == null) return null;
 
-        final parts = <String>[match.group(1)!.trim()];
+        // match.group(1) adalah huruf opsi (A/B/C/D) atau angka (1/2/3/4)
+        // match.group(2) adalah teks pilihannya
+        final parts = <String>[match.group(2)!.trim()];
         i++;
 
         // Kumpulkan baris lanjutan dari pilihan ini
@@ -239,7 +242,14 @@ class DocxParserService {
       if (i < lines.length) {
         final matchAnswer = answerRegex.firstMatch(lines[i]);
         if (matchAnswer != null) {
-          correctAnswer = matchAnswer.group(1)!.toUpperCase();
+          String ans = matchAnswer.group(1)!.toUpperCase();
+          // Konversi angka kembali ke huruf jika user menggunakan angka 1-4 untuk jawaban
+          if (ans == '1') ans = 'A';
+          else if (ans == '2') ans = 'B';
+          else if (ans == '3') ans = 'C';
+          else if (ans == '4') ans = 'D';
+          
+          correctAnswer = ans;
           i++;
         }
       }

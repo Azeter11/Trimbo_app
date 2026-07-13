@@ -10,14 +10,16 @@ import 'package:file_picker/file_picker.dart';
 import '../models/assignment_model.dart';
 import '../../teacher/models/question_model.dart';
 import '../../../services/firestore_service.dart';
-import '../../../services/firebase_storage_service.dart';
+import '../../../services/cloudinary_service.dart';
 import '../../../app/routes.dart';
+import '../../auth/models/user_model.dart';
+
 
 class EssayExamController extends GetxController {
   final FirestoreService _firestoreService = Get.find<FirestoreService>();
 
   late AssignmentModel assignment;
-  late dynamic student;
+  late UserModel student;
 
   final RxList<QuestionModel> questions = <QuestionModel>[].obs;
   final RxBool isLoadingQuestions = true.obs;
@@ -125,7 +127,7 @@ class EssayExamController extends GetxController {
         return;
       }
 
-      String? downloadUrl = await FirebaseStorageService.uploadPDF(
+      String? downloadUrl = await CloudinaryService.uploadPDF(
         fileName: fileName,
         file: selectedPdfFile.value?.path == 'virtual_path.pdf' ? null : selectedPdfFile.value,
         bytes: _pdfBytes,
@@ -134,7 +136,7 @@ class EssayExamController extends GetxController {
 
       if (downloadUrl == null) {
         isSubmitting.value = false;
-        return; // FirebaseStorageService sudah memunculkan snackbar error
+        return; // CloudinaryService sudah memunculkan snackbar error
       }
 
       // Buat data answers kosong (karena essay)
@@ -147,7 +149,7 @@ class EssayExamController extends GetxController {
         assignmentId: assignment.id,
         assignmentTitle: assignment.title,
         studentId: student.uid,
-        studentName: student.displayName ?? 'Siswa',
+        studentName: student.fullName.isNotEmpty ? student.fullName : 'Siswa',
         answers: answers,
         questions: questions, // Pass dummy to avoid issues
         warningCount: 0,
@@ -166,10 +168,14 @@ class EssayExamController extends GetxController {
         'wrong': 0,
         'skipped': 0,
         'assignment': assignment,
+        'assignmentTitle': assignment.title,
+        'totalQuestions': questions.length,
+        'isEssay': true,
       });
 
     } catch (e) {
-      Get.snackbar('Error', 'Terjadi kesalahan sistem saat mengunggah file. Coba lagi.');
+      debugPrint('[EssayExam] Submit error: $e');
+      Get.snackbar('Error', 'Terjadi kesalahan: $e');
     } finally {
       isSubmitting.value = false;
     }

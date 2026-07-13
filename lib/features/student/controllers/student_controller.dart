@@ -304,9 +304,10 @@ class StudentController extends GetxController {
 
   /// Hitung rata-rata nilai dari semua submission.
   double get averageScore {
-    if (mySubmissions.isEmpty) return 0;
-    final total = mySubmissions.map((s) => s.score).reduce((a, b) => a + b);
-    return total / mySubmissions.length;
+    final graded = mySubmissions.where((s) => s.isGraded).toList();
+    if (graded.isEmpty) return 0;
+    final total = graded.map((s) => s.score).reduce((a, b) => a + b);
+    return total / graded.length;
   }
 
   /// Jumlah tugas yang sudah selesai dikerjakan.

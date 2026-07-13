@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../controllers/student_controller.dart';
+import '../models/submission_model.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_styles.dart';
@@ -212,8 +213,8 @@ class GradeReportScreen extends StatelessWidget {
   Widget _buildBarChart(StudentController controller) {
     final submissions = controller.mySubmissions;
 
-    // Batasi hanya tampilkan 5 tugas terakhir agar chart tidak terlalu padat
-    final displayedSubmissions = submissions.take(5).toList();
+    // Batasi hanya tampilkan 5 tugas terakhir yang sudah dinilai agar chart tidak terlalu padat
+    final displayedSubmissions = submissions.where((s) => s.isGraded).take(5).toList();
 
     return Container(
       height: 200.h,
@@ -295,13 +296,15 @@ class GradeReportScreen extends StatelessWidget {
 }
 
 class _GradeCard extends StatelessWidget {
-  final dynamic submission;
+  final SubmissionModel submission;
 
   const _GradeCard({required this.submission});
 
   @override
   Widget build(BuildContext context) {
-    final scoreColor = AppColors.gradeColor(submission.score.toDouble());
+    final scoreColor = submission.isGraded
+        ? AppColors.gradeColor(submission.score.toDouble())
+        : AppColors.textSecondary;
 
     return Container(
       margin: EdgeInsets.only(bottom: 10.h),
@@ -319,7 +322,7 @@ class _GradeCard extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                submission.grade,
+                submission.isGraded ? submission.grade : '-',
                 style: AppStyles.headingS.copyWith(color: scoreColor),
               ),
             ),
@@ -346,8 +349,8 @@ class _GradeCard extends StatelessWidget {
           ),
 
           Text(
-            submission.score.toStringAsFixed(1),
-            style: AppStyles.headingS.copyWith(color: scoreColor),
+            submission.isGraded ? submission.score.toStringAsFixed(1) : 'Belum Dinilai',
+            style: AppStyles.headingS.copyWith(color: scoreColor, fontSize: submission.isGraded ? 14.sp : 11.sp),
           ),
         ],
       ),

@@ -502,6 +502,7 @@ class FirestoreService {
         'warningCount': warningCount,
         'isAutoSubmitted': isAutoSubmitted,
         'fileUrl': fileUrl,
+        'isGraded': fileUrl == null,
         'submittedAt': FieldValue.serverTimestamp(),
       });
 
@@ -578,6 +579,7 @@ class FirestoreService {
     try {
       await _db.collection(_submissionsCollection).doc(submissionId).update({
         'score': newScore,
+        'isGraded': true,
       });
       return null;
     } catch (e) {

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/user_model.dart';
 import '../../../services/firebase_auth_service.dart';
-import '../../../services/firebase_storage_service.dart';
+import '../../../services/cloudinary_service.dart';
 import '../../../app/routes.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,8 +15,8 @@ class AuthController extends GetxController {
   final FirebaseAuthService _authService = Get.find<FirebaseAuthService>();
 
   // ========================
-  // UPDATE PROFILE PICTURE (FIREBASE STORAGE)
-  // Menggunakan Firebase Storage untuk konsistensi
+  // UPDATE PROFILE PICTURE (CLOUDINARY)
+  // Menggunakan Cloudinary untuk konsistensi
   // ========================
   Future<void> updateProfilePicture() async {
     final picker = ImagePicker();
@@ -37,8 +37,8 @@ class AuthController extends GetxController {
         // Generate nama file unik
         String fileName = 'profile_${uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-        // Upload ke Firebase Storage menggunakan service
-        String? photoUrl = await FirebaseStorageService.uploadImage(
+        // Upload ke Cloudinary menggunakan service
+        String? photoUrl = await CloudinaryService.uploadImage(
           fileName: fileName,
           file: file,
           folder: 'profile_images',

@@ -232,6 +232,14 @@ class _StudentGradesScreenState extends State<StudentGradesScreen> {
                             style:
                                 AppStyles.labelS.copyWith(color: Colors.white)),
                       ),
+                      if (assignment.type == 'essay')
+                        SizedBox(
+                          width: 44.w,
+                          child: Text('File',
+                              style:
+                                  AppStyles.labelS.copyWith(color: Colors.white),
+                              textAlign: TextAlign.center),
+                        ),
                       SizedBox(
                         width: 44.w,
                         child: Text('Nilai',
@@ -287,6 +295,19 @@ class _StudentGradesScreenState extends State<StudentGradesScreen> {
                               style: AppStyles.bodyM,
                               overflow: TextOverflow.ellipsis),
                         ),
+                        // File (hanya untuk essay)
+                        if (assignment.type == 'essay')
+                          SizedBox(
+                            width: 44.w,
+                            child: s.fileUrl != null && s.fileUrl!.isNotEmpty
+                                ? IconButton(
+                                    icon: Icon(Icons.picture_as_pdf_rounded, color: AppColors.error, size: 20.sp),
+                                    onPressed: () => Helpers.openUrl(s.fileUrl!),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  )
+                                : const Center(child: Text('-')),
+                          ),
                         // Nilai
                         SizedBox(
                           width: 44.w,

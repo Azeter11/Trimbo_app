@@ -50,6 +50,7 @@ dependencies:
   http: ^1.6.0
   google_mobile_ads: ^8.0.0
   docx_to_text: ^1.0.1
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

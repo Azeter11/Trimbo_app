@@ -16,6 +16,7 @@ class SubmissionModel {
   final bool isAutoSubmitted;         // true jika dikumpulkan otomatis (waktu habis/anti-cheat)
   final int warningCount;             // Jumlah kali keluar dari layar ujian
   final String? fileUrl;              // URL file PDF jawaban (untuk tugas essay)
+  final bool isGraded;                // Status apakah tugas ini sudah dinilai oleh guru
 
   const SubmissionModel({
     required this.id,
@@ -32,6 +33,7 @@ class SubmissionModel {
     this.isAutoSubmitted = false,
     this.warningCount = 0,
     this.fileUrl,
+    this.isGraded = true,
   });
 
   /// Grade huruf berdasarkan nilai
@@ -67,6 +69,7 @@ class SubmissionModel {
       isAutoSubmitted: map['isAutoSubmitted'] ?? false,
       warningCount: map['warningCount'] ?? 0,
       fileUrl: map['fileUrl'],
+      isGraded: map['isGraded'] ?? (map['fileUrl'] == null),
     );
   }
 
@@ -90,6 +93,7 @@ class SubmissionModel {
       'isAutoSubmitted': isAutoSubmitted,
       'warningCount': warningCount,
       'fileUrl': fileUrl,
+      'isGraded': isGraded,
     };
   }
 }

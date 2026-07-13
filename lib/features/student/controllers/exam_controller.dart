@@ -225,6 +225,7 @@ class ExamController extends GetxController with WidgetsBindingObserver {
           'totalQuestions': questions.length,
           'assignmentTitle': assignment.title,
           'isEliminatedByCheat': true,
+          'isEssay': false,
         },
       );
     });
@@ -411,6 +412,7 @@ class ExamController extends GetxController with WidgetsBindingObserver {
           'skipped': unansweredCount,
           'totalQuestions': questions.length,
           'assignmentTitle': assignment.title,
+          'isEssay': false,
         },
       );
     } finally {

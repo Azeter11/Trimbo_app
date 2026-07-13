@@ -30,6 +30,7 @@ class _ResultScreenState extends State<ResultScreen>
   late final int totalQuestions;
   late final String assignmentTitle;
   late final bool isEliminatedByCheat;
+  late final bool isEssay;
 
   // Nilai yang ditampilkan (animasi count-up dari 0 ke nilai asli)
   double _displayedScore = 0;
@@ -50,6 +51,7 @@ class _ResultScreenState extends State<ResultScreen>
       totalQuestions = args['totalQuestions'] as int? ?? 0;
       assignmentTitle = args['assignmentTitle'] as String? ?? 'Hasil Ujian';
       isEliminatedByCheat = args['isEliminatedByCheat'] as bool? ?? false;
+      isEssay = args['isEssay'] as bool? ?? false;
     } else {
       // Default jika argumen tidak ada atau salah format
       score = 0.0;
@@ -59,6 +61,7 @@ class _ResultScreenState extends State<ResultScreen>
       totalQuestions = 0;
       assignmentTitle = 'Hasil Ujian';
       isEliminatedByCheat = false;
+      isEssay = false;
     }
 
     // Setup animasi count-up untuk nilai
@@ -93,6 +96,7 @@ class _ResultScreenState extends State<ResultScreen>
 
   /// Tentukan emoji berdasarkan nilai.
   String get _scoreEmoji {
+    if (isEssay) return '📝';
     if (isEliminatedByCheat) return '🚫';
     if (score >= 90) return '🏆';
     if (score >= 80) return '⭐';
@@ -129,88 +133,118 @@ class _ResultScreenState extends State<ResultScreen>
 
               SizedBox(height: 32.h),
 
-              // ====== NILAI BESAR (COUNT-UP) ======
-              Container(
-                padding: EdgeInsets.all(24.w),
-                decoration: BoxDecoration(
-                  color: _scoreColor.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Container(
-                  width: 140.w,
-                  height: 140.h,
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBackground,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: _scoreColor.withOpacity(0.3),
-                        blurRadius: 20,
-                        spreadRadius: 4,
+              // ====== NILAI BESAR (COUNT-UP) ATAU ICON CHECK UNTUK ESSAY ======
+              isEssay
+                  ? Container(
+                      padding: EdgeInsets.all(24.w),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withOpacity(0.1),
+                        shape: BoxShape.circle,
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        // Animasi nilai dari 0 → nilai asli
-                        _displayedScore.toStringAsFixed(0),
-                        style: AppStyles.scoreLarge.copyWith(
-                          color: _scoreColor,
-                          fontSize: 52.sp,
+                      child: Container(
+                        width: 140.w,
+                        height: 140.h,
+                        decoration: BoxDecoration(
+                          color: AppColors.cardBackground,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.success.withOpacity(0.3),
+                              blurRadius: 20,
+                              spreadRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.check_circle_outline_rounded,
+                            color: AppColors.success,
+                            size: 64.sp,
+                          ),
                         ),
                       ),
-                      Text(
-                        // Grade huruf
-                        Helpers.scoreToGrade(score),
-                        style: AppStyles.headingS.copyWith(color: _scoreColor),
+                    )
+                  : Container(
+                      padding: EdgeInsets.all(24.w),
+                      decoration: BoxDecoration(
+                        color: _scoreColor.withOpacity(0.1),
+                        shape: BoxShape.circle,
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                      child: Container(
+                        width: 140.w,
+                        height: 140.h,
+                        decoration: BoxDecoration(
+                          color: AppColors.cardBackground,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: _scoreColor.withOpacity(0.3),
+                              blurRadius: 20,
+                              spreadRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              // Animasi nilai dari 0 → nilai asli
+                              _displayedScore.toStringAsFixed(0),
+                              style: AppStyles.scoreLarge.copyWith(
+                                color: _scoreColor,
+                                fontSize: 52.sp,
+                              ),
+                            ),
+                            Text(
+                              // Grade huruf
+                              Helpers.scoreToGrade(score),
+                              style: AppStyles.headingS.copyWith(color: _scoreColor),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
 
               SizedBox(height: 32.h),
 
               // ====== STATISTIK ======
-              Container(
-                padding: EdgeInsets.all(20.w),
-                decoration: AppStyles.cardDecoration,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _StatItem(
-                      label: AppStrings.resultCorrect,
-                      value: '$correct',
-                      color: AppColors.success,
-                      icon: Icons.check_circle_rounded,
-                    ),
-                    _Divider(),
-                    _StatItem(
-                      label: AppStrings.resultWrong,
-                      value: '$wrong',
-                      color: AppColors.error,
-                      icon: Icons.cancel_rounded,
-                    ),
-                    _Divider(),
-                    _StatItem(
-                      label: AppStrings.resultSkipped,
-                      value: '$skipped',
-                      color: AppColors.textSecondary,
-                      icon: Icons.remove_circle_outline_rounded,
-                    ),
-                  ],
+              if (!isEssay) ...[
+                Container(
+                  padding: EdgeInsets.all(20.w),
+                  decoration: AppStyles.cardDecoration,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _StatItem(
+                        label: AppStrings.resultCorrect,
+                        value: '$correct',
+                        color: AppColors.success,
+                        icon: Icons.check_circle_rounded,
+                      ),
+                      _Divider(),
+                      _StatItem(
+                        label: AppStrings.resultWrong,
+                        value: '$wrong',
+                        color: AppColors.error,
+                        icon: Icons.cancel_rounded,
+                      ),
+                      _Divider(),
+                      _StatItem(
+                        label: AppStrings.resultSkipped,
+                        value: '$skipped',
+                        color: AppColors.textSecondary,
+                        icon: Icons.remove_circle_outline_rounded,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-
-              SizedBox(height: 16.h),
-
-              // Info total soal
-              Text(
-                'Total: $totalQuestions soal',
-                style: AppStyles.bodyS,
-              ),
+                SizedBox(height: 16.h),
+                // Info total soal
+                Text(
+                  'Total: $totalQuestions soal',
+                  style: AppStyles.bodyS,
+                ),
+              ],
 
               SizedBox(height: 32.h),
 
@@ -249,7 +283,9 @@ class _ResultScreenState extends State<ResultScreen>
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Text(
-                    _getMotivationMessage(),
+                    isEssay
+                        ? 'Tugas essay Anda telah berhasil dikumpulkan. Guru/dosen akan memeriksa dan menginput nilai Anda secara manual.'
+                        : _getMotivationMessage(),
                     style: AppStyles.bodyM.copyWith(color: AppColors.primary),
                     textAlign: TextAlign.center,
                   ),
