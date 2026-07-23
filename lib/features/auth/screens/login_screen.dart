@@ -118,16 +118,21 @@ class LoginScreen extends StatelessWidget {
       children: [
         // Mini logo
         Container(
-          width: 56.w,
-          height: 56.h,
+          width: 64.w,
+          height: 64.h,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.primary, AppColors.secondary],
-            ),
-            borderRadius: BorderRadius.circular(16.r),
+            gradient: AppColors.primaryGradient,
+            borderRadius: BorderRadius.circular(20.r),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(16.r),
+            borderRadius: BorderRadius.circular(20.r),
             child: Image.asset(
               'assets/icons/TrimboIcon.png',
               fit: BoxFit.cover,
@@ -135,7 +140,7 @@ class LoginScreen extends StatelessWidget {
           ),
         ),
 
-        SizedBox(height: 24.h),
+        SizedBox(height: 32.h),
 
         // Judul
         Text(AppStrings.loginTitle, style: AppStyles.headingL),

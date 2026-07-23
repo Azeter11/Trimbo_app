@@ -39,35 +39,43 @@ class LoadingOverlay extends StatelessWidget {
             child: Center(
               child: Container(
                 padding: EdgeInsets.symmetric(
-                  horizontal: 32.w,
-                  vertical: 28.h,
+                  horizontal: 40.w,
+                  vertical: 32.h,
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.cardBackground,
-                  borderRadius: BorderRadius.circular(16.r),
+                  borderRadius: BorderRadius.circular(24.r),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.shadow,
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
+                      color: AppColors.primary.withOpacity(0.15),
+                      blurRadius: 24,
+                      offset: const Offset(0, 12),
                     ),
                   ],
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min, // Sesuaikan ukuran dengan konten
                   children: [
-                    // Spinner loading
-                    CircularProgressIndicator(
-                      color: AppColors.primary,
-                      strokeWidth: 3,
+                    // Spinner loading dengan container ungu muda
+                    Container(
+                      padding: EdgeInsets.all(16.w),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        shape: BoxShape.circle,
+                      ),
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                        strokeWidth: 3,
+                      ),
                     ),
                     // Pesan loading (jika ada)
                     if (message != null) ...[
-                      SizedBox(height: 16.h),
+                      SizedBox(height: 20.h),
                       Text(
                         message!,
                         style: AppStyles.bodyM.copyWith(
                           color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -110,31 +118,38 @@ class EmptyStateWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Ikon besar
+            // Ikon besar dengan efek shadow
             Container(
-              padding: EdgeInsets.all(20.w),
+              padding: EdgeInsets.all(24.w),
               decoration: BoxDecoration(
                 color: AppColors.primaryLight,
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
               child: Icon(
                 icon,
-                size: 48.sp,
+                size: 52.sp,
                 color: AppColors.primary,
               ),
             ),
-            SizedBox(height: 20.h),
+            SizedBox(height: 24.h),
 
             // Judul
             Text(
               title,
-              style: AppStyles.headingS,
+              style: AppStyles.headingS.copyWith(fontSize: 18.sp),
               textAlign: TextAlign.center,
             ),
 
             // Sub-judul (opsional)
             if (subtitle != null) ...[
-              SizedBox(height: 8.h),
+              SizedBox(height: 10.h),
               Text(
                 subtitle!,
                 style: AppStyles.bodyM.copyWith(
@@ -146,7 +161,7 @@ class EmptyStateWidget extends StatelessWidget {
 
             // Tombol aksi (opsional)
             if (action != null) ...[
-              SizedBox(height: 24.h),
+              SizedBox(height: 28.h),
               action!,
             ],
           ],
@@ -179,18 +194,32 @@ class ErrorStateWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.error_outline_rounded,
-              size: 60.sp,
-              color: AppColors.error,
+            Container(
+              padding: EdgeInsets.all(24.w),
+              decoration: BoxDecoration(
+                color: AppColors.errorLight,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.error.withOpacity(0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.error_outline_rounded,
+                size: 52.sp,
+                color: AppColors.error,
+              ),
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: 24.h),
             Text(
               'Terjadi Kesalahan',
-              style: AppStyles.headingS,
+              style: AppStyles.headingS.copyWith(fontSize: 18.sp),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: 10.h),
             Text(
               message,
               style: AppStyles.bodyM.copyWith(
@@ -199,7 +228,7 @@ class ErrorStateWidget extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             if (onRetry != null) ...[
-              SizedBox(height: 24.h),
+              SizedBox(height: 28.h),
               TextButton.icon(
                 onPressed: onRetry,
                 icon: Icon(Icons.refresh_rounded),

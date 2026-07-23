@@ -188,26 +188,33 @@ class _OtpScreenState extends State<OtpScreen> {
 
   Widget _buildWaitingIcon() {
     return Container(
-      width: 120.w,
-      height: 120.h,
-      decoration: const BoxDecoration(
+      width: 140.w,
+      height: 140.h,
+      decoration: BoxDecoration(
         color: AppColors.primaryLight,
         shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.1),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Stack(
         alignment: Alignment.center,
         children: [
           Icon(
             Icons.mark_email_unread_rounded,
-            size: 60.sp,
+            size: 64.sp,
             color: AppColors.primary,
           ),
           // Ring animasi
           SizedBox(
-            width: 90.w,
-            height: 90.h,
+            width: 100.w,
+            height: 100.h,
             child: const CircularProgressIndicator(
-              strokeWidth: 2,
+              strokeWidth: 2.5,
               valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
             ),
           ),
@@ -218,15 +225,22 @@ class _OtpScreenState extends State<OtpScreen> {
 
   Widget _buildSuccessIcon() {
     return Container(
-      width: 120.w,
-      height: 120.h,
-      decoration: const BoxDecoration(
+      width: 140.w,
+      height: 140.h,
+      decoration: BoxDecoration(
         color: AppColors.successLight,
         shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.success.withOpacity(0.1),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Icon(
         Icons.check_circle_rounded,
-        size: 80.sp,
+        size: 84.sp,
         color: AppColors.success,
       ),
     );

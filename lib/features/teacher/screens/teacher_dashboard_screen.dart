@@ -118,12 +118,12 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
   Widget _buildHeader(AuthController auth, TeacherController controller) {
     final user = auth.currentUser.value;
     return Container(
-      padding: EdgeInsets.fromLTRB(24.w, 56.h, 24.w, 28.h),
+      padding: EdgeInsets.fromLTRB(24.w, 56.h, 24.w, 32.h),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.secondary, AppColors.primary],
+        gradient: AppColors.primaryGradient,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
         ),
       ),
       child: Row(
@@ -134,18 +134,29 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
               children: [
                 Text(
                   AppStrings.teacherDashboardGreeting,
-                  style: AppStyles.bodyM.copyWith(color: Colors.white70),
+                  style: AppStyles.bodyM.copyWith(color: Colors.white.withOpacity(0.8)),
                 ),
+                SizedBox(height: 4.h),
                 Text(
                   user?.fullName.split(' ').first ?? 'Guru',
-                  style: AppStyles.headingL.copyWith(color: Colors.white),
+                  style: AppStyles.headingL.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 26.sp,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (user?.institution != null)
-                  Text(
-                    user!.institution!,
-                    style: AppStyles.bodyS.copyWith(color: Colors.white60),
-                    overflow: TextOverflow.ellipsis,
+                  Padding(
+                    padding: EdgeInsets.only(top: 6.h),
+                    child: Text(
+                      user!.institution!,
+                      style: AppStyles.bodyS.copyWith(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 13.sp,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
               ],
             ),
@@ -153,25 +164,35 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
           GestureDetector(
             onTap: () => Get.toNamed(AppRoutes.teacherProfile),
             child: Container(
-              width: 48.w,
-              height: 48.h,
+              width: 52.w,
+              height: 52.h,
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.2),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white30, width: 2),
+                border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryDark.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: (user?.photoUrl != null && user!.photoUrl!.isNotEmpty)
                   ? ClipOval(
                       child: Image.network(
                         user.photoUrl!,
                         fit: BoxFit.cover,
-                        width: 48.w,
-                        height: 48.h,
+                        width: 52.w,
+                        height: 52.h,
                         errorBuilder: (context, error, stackTrace) {
                           return Center(
                             child: Text(
                               user.initials,
-                              style: AppStyles.headingS.copyWith(color: Colors.white),
+                              style: AppStyles.headingS.copyWith(
+                                color: Colors.white,
+                                fontSize: 20.sp,
+                              ),
                             ),
                           );
                         },
@@ -180,7 +201,10 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                   : Center(
                       child: Text(
                         user?.initials ?? '?',
-                        style: AppStyles.headingS.copyWith(color: Colors.white),
+                        style: AppStyles.headingS.copyWith(
+                          color: Colors.white,
+                          fontSize: 20.sp,
+                        ),
                       ),
                     ),
             ),
@@ -192,7 +216,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
 
   Widget _buildStatCards(TeacherController controller) {
     return Padding(
-      padding: EdgeInsets.all(20.w),
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
       child: Row(
         children: [
           Expanded(
@@ -237,36 +261,56 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(AppStrings.recentClasses, style: AppStyles.headingS),
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(8.w),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    child: Icon(Icons.school_rounded, size: 18.sp, color: AppColors.primary),
+                  ),
+                  SizedBox(width: 12.w),
+                  Text(AppStrings.recentClasses, style: AppStyles.headingS),
+                ],
+              ),
               if (classes.length > 5)
                 TextButton(
                   onPressed: () => Get.toNamed(AppRoutes.teacherClassList),
                   child: Text(
                     AppStrings.viewAll,
-                    style: AppStyles.labelS.copyWith(color: AppColors.primary),
+                    style: AppStyles.labelS.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600),
                   ),
                 ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 16.h),
           if (classes.isEmpty)
             Center(
               child: Padding(
                 padding: EdgeInsets.all(32.w),
                 child: Column(
                   children: [
-                    Icon(Icons.class_outlined,
-                        size: 48.sp, color: AppColors.textTertiary),
-                    SizedBox(height: 12.h),
+                    Container(
+                      padding: EdgeInsets.all(24.w),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.class_outlined,
+                          size: 48.sp, color: AppColors.primary.withOpacity(0.5)),
+                    ),
+                    SizedBox(height: 16.h),
                     Text(
                       'Belum ada kelas',
                       style: AppStyles.bodyM
-                          .copyWith(color: AppColors.textSecondary),
+                          .copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                     ),
-                    SizedBox(height: 4.h),
+                    SizedBox(height: 6.h),
                     Text(
-                      'Tekan + untuk membuat kelas pertama',
-                      style: AppStyles.bodyS,
+                      'Tekan tombol + untuk membuat kelas pertama',
+                      style: AppStyles.bodyS.copyWith(fontSize: 12.sp),
                     ),
                   ],
                 ),
@@ -284,11 +328,11 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                       children: [
                         // Ikon kelas
                         Container(
-                          width: 48.w,
-                          height: 48.h,
+                          width: 52.w,
+                          height: 52.h,
                           decoration: BoxDecoration(
                             color: AppColors.primaryLight,
-                            borderRadius: BorderRadius.circular(12.r),
+                            borderRadius: BorderRadius.circular(14.r),
                           ),
                           child: Icon(
                             Icons.class_rounded,
@@ -297,7 +341,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                           ),
                         ),
 
-                        SizedBox(width: 12.w),
+                        SizedBox(width: 16.w),
 
                         // Info kelas
                         Expanded(
@@ -306,11 +350,11 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                             children: [
                               Text(
                                 classData.name,
-                                style: AppStyles.labelL,
+                                style: AppStyles.labelL.copyWith(fontSize: 15.sp),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              SizedBox(height: 2.h),
+                              SizedBox(height: 4.h),
                               Row(
                                 children: [
                                   Icon(Icons.people_outlined,
@@ -326,16 +370,17 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                                   Flexible(
                                     child: Container(
                                       padding: EdgeInsets.symmetric(
-                                          horizontal: 6.w, vertical: 2.h),
+                                          horizontal: 8.w, vertical: 3.h),
                                       decoration: BoxDecoration(
                                         color: AppColors.primaryLight,
-                                        borderRadius: BorderRadius.circular(4.r),
+                                        borderRadius: BorderRadius.circular(6.r),
                                       ),
                                       child: Text(
                                         classData.classCode,
                                         style: AppStyles.labelS.copyWith(
                                           color: AppColors.primary,
                                           fontFamily: 'monospace',
+                                          fontSize: 11.sp,
                                         ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -347,8 +392,15 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                           ),
                         ),
 
-                        Icon(Icons.arrow_forward_ios_rounded,
-                            size: 14.sp, color: AppColors.textTertiary),
+                        Container(
+                          padding: EdgeInsets.all(8.w),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceSecondary,
+                            borderRadius: BorderRadius.circular(10.r),
+                          ),
+                          child: Icon(Icons.arrow_forward_ios_rounded,
+                              size: 14.sp, color: AppColors.textTertiary),
+                        ),
                       ],
                     ),
                   ),
@@ -367,14 +419,33 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: 24.h),
-          Text('Tugas Terbaru', style: AppStyles.headingS),
-          SizedBox(height: 12.h),
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(8.w),
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Icon(Icons.assignment_rounded, size: 18.sp, color: AppColors.secondary),
+              ),
+              SizedBox(width: 12.w),
+              Text('Tugas Terbaru', style: AppStyles.headingS),
+            ],
+          ),
+          SizedBox(height: 16.h),
           if (assignments.isEmpty)
             Container(
-              padding: EdgeInsets.all(16.w),
+              padding: EdgeInsets.all(20.w),
               decoration: AppStyles.cardDecorationLight,
-              child: Text('Belum ada tugas yang diterbitkan',
-                  style: AppStyles.bodyM),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, color: AppColors.textTertiary, size: 20.sp),
+                  SizedBox(width: 12.w),
+                  Text('Belum ada tugas yang diterbitkan',
+                      style: AppStyles.bodyM.copyWith(color: AppColors.textSecondary)),
+                ],
+              ),
             )
           else
             ...assignments.take(5).map((assignment) => GestureDetector(
@@ -386,30 +457,45 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                     decoration: AppStyles.cardDecoration,
                     child: Row(
                       children: [
-                        Icon(Icons.assignment_rounded,
-                            color: AppColors.secondary, size: 24.sp),
-                        SizedBox(width: 12.w),
+                        Container(
+                          padding: EdgeInsets.all(10.w),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Icon(Icons.assignment_rounded,
+                              color: AppColors.secondary, size: 20.sp),
+                        ),
+                        SizedBox(width: 16.w),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 assignment.title,
-                                style: AppStyles.labelL,
+                                style: AppStyles.labelL.copyWith(fontSize: 15.sp),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
+                              SizedBox(height: 4.h),
                               Text(
                                 'Deadline: ${Helpers.formatDateTime(assignment.deadline)}',
-                                style: AppStyles.bodyS,
+                                style: AppStyles.bodyS.copyWith(fontSize: 12.sp),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
                         ),
-                        Icon(Icons.arrow_forward_ios_rounded,
-                            size: 14.sp, color: AppColors.textTertiary),
+                        Container(
+                          padding: EdgeInsets.all(8.w),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceSecondary,
+                            borderRadius: BorderRadius.circular(10.r),
+                          ),
+                          child: Icon(Icons.arrow_forward_ios_rounded,
+                              size: 14.sp, color: AppColors.textTertiary),
+                        ),
                       ],
                     ),
                   ),
@@ -436,37 +522,43 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(14.w),
+      padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 8.w),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-              color: AppColors.shadow,
-              blurRadius: 8,
-              offset: const Offset(0, 2)),
+              color: color.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
         children: [
           Container(
-            width: 40.w,
-            height: 40.h,
+            width: 48.w,
+            height: 48.h,
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(14.r),
             ),
-            child: Icon(icon, color: color, size: 20.sp),
+            child: Icon(icon, color: color, size: 24.sp),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 12.h),
           FittedBox(
             fit: BoxFit.scaleDown,
-            child: Text(value, style: AppStyles.headingM.copyWith(color: color)),
+            child: Text(value, style: AppStyles.headingM.copyWith(
+              color: color,
+              fontSize: 20.sp,
+            )),
           ),
-          SizedBox(height: 2.h),
+          SizedBox(height: 4.h),
           Text(
             label,
-            style: AppStyles.bodyS.copyWith(fontSize: 10.sp),
+            style: AppStyles.bodyS.copyWith(
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w500,
+            ),
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,

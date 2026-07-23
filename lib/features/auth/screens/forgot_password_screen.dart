@@ -71,24 +71,31 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       children: [
         // Ikon
         Container(
-          width: 80.w,
-          height: 80.h,
+          width: 100.w,
+          height: 100.h,
           decoration: BoxDecoration(
             color: AppColors.warningLight,
             shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.warning.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
           child: Icon(
             Icons.lock_reset_rounded,
-            size: 40.sp,
+            size: 48.sp,
             color: AppColors.warning,
           ),
         ),
 
-        SizedBox(height: 24.h),
+        SizedBox(height: 32.h),
 
         Text(AppStrings.forgotPasswordTitle, style: AppStyles.headingM),
 
-        SizedBox(height: 8.h),
+        SizedBox(height: 12.h),
 
         Text(
           AppStrings.forgotPasswordStep1Subtitle,
@@ -96,7 +103,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           textAlign: TextAlign.center,
         ),
 
-        SizedBox(height: 36.h),
+        SizedBox(height: 40.h),
 
         // Form email
         Form(
@@ -115,7 +122,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
         ),
 
-        SizedBox(height: 24.h),
+        SizedBox(height: 28.h),
 
         // Tombol kirim
         PrimaryButton(

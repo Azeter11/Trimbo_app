@@ -9,24 +9,24 @@ class AppColors {
   AppColors._();
 
   // ========================
-  // WARNA UTAMA (PRIMARY)
+  // WARNA UTAMA (PRIMARY) — UNSUR UNGU & PUTIH
   // ========================
 
-  /// Warna utama aplikasi — Indigo
-  static const Color primary = Color(0xFF4F46E5);
+  /// Warna utama aplikasi — Ungu Royal (Vibrant & Modern)
+  static const Color primary = Color(0xFF7C3AED);
 
   /// Warna primer lebih terang (untuk hover, background ringan)
-  static const Color primaryLight = Color(0xFFEEF2FF);
+  static const Color primaryLight = Color(0xFFEDE9FE);
 
   /// Warna primer lebih gelap (untuk teks di atas background primer)
-  static const Color primaryDark = Color(0xFF3730A3);
+  static const Color primaryDark = Color(0xFF5B21B6);
 
   // ========================
   // WARNA SEKUNDER
   // ========================
 
-  /// Warna sekunder — Ungu
-  static const Color secondary = Color(0xFF7C3AED);
+  /// Warna sekunder — Ungu Muda (Soft Lavender)
+  static const Color secondary = Color(0xFFA78BFA);
 
   /// Warna sekunder lebih terang
   static const Color secondaryLight = Color(0xFFF5F3FF);
@@ -63,14 +63,14 @@ class AppColors {
   // WARNA LATAR BELAKANG
   // ========================
 
-  /// Background utama halaman — abu-abu sangat terang
-  static const Color background = Color(0xFFF8FAFC);
+  /// Background utama halaman — sedikit warm white untuk kesan bersih
+  static const Color background = Color(0xFFFAFAFA);
 
   /// Background card / komponen
   static const Color cardBackground = Color(0xFFFFFFFF);
 
   /// Background surface kedua (misal: input field)
-  static const Color surfaceSecondary = Color(0xFFF1F5F9);
+  static const Color surfaceSecondary = Color(0xFFF3F0FF); // Sedikit hint ungu
 
   // ========================
   // WARNA TEKS
@@ -102,8 +102,26 @@ class AppColors {
   // WARNA SHADOW
   // ========================
 
-  /// Bayangan card
-  static const Color shadow = Color(0x1A000000); // 10% opacity hitam
+  /// Bayangan card — ungu transparan untuk kesan modern
+  static const Color shadow = Color(0x1A7C3AED); // 10% opacity ungu
+
+  // ========================
+  // GRADIENTS
+  // ========================
+
+  /// Gradient utama aplikasi (Ungu ke Biru Muda) — Modern & Cerah
+  static const LinearGradient primaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF7C3AED), Color(0xFF6366F1)], // Ungu ke Indigo
+  );
+
+  /// Gradient untuk elemen statis atau dekoratif
+  static const LinearGradient secondaryGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFFF5F3FF), Color(0xFFFFFFFF)],
+  );
 
   // ========================
   // WARNA GRAFIK (CHART)
@@ -111,11 +129,11 @@ class AppColors {
 
   /// Warna-warna untuk bar chart / pie chart
   static const List<Color> chartColors = [
-    Color(0xFF4F46E5), // Indigo
+    Color(0xFF7C3AED), // Ungu
     Color(0xFF10B981), // Hijau
     Color(0xFFF59E0B), // Amber
     Color(0xFFEF4444), // Merah
-    Color(0xFF7C3AED), // Ungu
+    Color(0xFF6366F1), // Indigo
   ];
 
   // ========================

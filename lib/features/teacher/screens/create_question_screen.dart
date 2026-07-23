@@ -357,19 +357,20 @@ class CreateQuestionScreen extends StatelessWidget {
   }
 
   Widget _buildBottomBar(AssignmentController controller) {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 12,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: Obx(
+    return SafeArea(
+      child: Container(
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadow,
+              blurRadius: 12,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: Obx(
         () => Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -387,6 +388,7 @@ class CreateQuestionScreen extends StatelessWidget {
               leadingIcon: Icons.publish_rounded,
             ),
           ],
+        ),
         ),
       ),
     );

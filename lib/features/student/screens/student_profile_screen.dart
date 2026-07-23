@@ -71,27 +71,30 @@ class StudentProfileScreen extends StatelessWidget {
               children: [
                 // Container Avatar Utama
                 Container(
-                  width: 80.w,
-                  height: 80.h,
+                  width: 96.w,
+                  height: 96.h,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    // Warna abu-abu sebagai cadangan jika gradient hilang
                     color: Colors.grey[200],
                     gradient: (user.photoUrl == null || user.photoUrl!.isEmpty)
-                        ? const LinearGradient(
-                      colors: [AppColors.primary, AppColors.secondary],
-                    )
+                        ? AppColors.primaryGradient
                         : null,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.2),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
                   // Cek apakah ada URL foto
                   child: (user.photoUrl != null && user.photoUrl!.isNotEmpty)
-                      ? ClipOval( // Potong gambar agar melingkar
+                      ? ClipOval(
                     child: Image.network(
                       user.photoUrl!,
                       fit: BoxFit.cover,
-                      width: 80.w,
-                      height: 80.h,
-                      // Tampilkan animasi loading saat mengunduh gambar
+                      width: 96.w,
+                      height: 96.h,
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
                         return Center(
@@ -105,27 +108,35 @@ class StudentProfileScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      // Tampilkan ikon jika gagal memuat gambar
                       errorBuilder: (context, error, stackTrace) {
                         return Icon(Icons.broken_image, color: Colors.grey[400], size: 30.sp);
                       },
                     ),
                   )
-                  // Jika tidak ada URL foto, tampilkan inisial
                       : Center(
                     child: Text(
                       user.initials,
-                      style: AppStyles.headingL.copyWith(color: Colors.white),
+                      style: AppStyles.headingL.copyWith(
+                        color: Colors.white,
+                        fontSize: 28.sp,
+                      ),
                     ),
                   ),
                 ),
                 // Ikon Kamera di pojok bawah
                 Container(
-                  padding: EdgeInsets.all(6.w),
+                  padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
-                    color: AppColors.primary, // Menggunakan warna primary aplikasi
+                    color: AppColors.primary,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2), // Efek border putih
+                    border: Border.all(color: Colors.white, width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Icon(
                     Icons.camera_alt,
@@ -138,22 +149,32 @@ class StudentProfileScreen extends StatelessWidget {
           ),
           // ======== AKHIR BAGIAN FOTO PROFIL ========
 
-          SizedBox(height: 16.h),
+          SizedBox(height: 20.h),
 
           // Nama dan Tombol Edit
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(user.fullName, style: AppStyles.headingS),
+              Text(
+                user.fullName,
+                style: AppStyles.headingS.copyWith(fontSize: 18.sp),
+              ),
               SizedBox(width: 8.w),
               GestureDetector(
                 onTap: () => _showEditProfileDialog(Get.find<AuthController>(), user),
-                child: Icon(Icons.edit, size: 18.sp, color: AppColors.primary),
+                child: Container(
+                  padding: EdgeInsets.all(6.w),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Icon(Icons.edit, size: 16.sp, color: AppColors.primary),
+                ),
               ),
             ],
           ),
 
-          SizedBox(height: 4.h),
+          SizedBox(height: 6.h),
 
           // Email
           Text(
@@ -161,24 +182,24 @@ class StudentProfileScreen extends StatelessWidget {
             style: AppStyles.bodyM.copyWith(color: AppColors.textSecondary),
           ),
 
-          SizedBox(height: 12.h),
+          SizedBox(height: 16.h),
 
           // Badge role
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
             decoration: BoxDecoration(
               color: AppColors.primaryLight,
-              borderRadius: BorderRadius.circular(20.r),
+              borderRadius: BorderRadius.circular(24.r),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.person_rounded,
-                    size: 14.sp, color: AppColors.primary),
-                SizedBox(width: 6.w),
+                    size: 16.sp, color: AppColors.primary),
+                SizedBox(width: 8.w),
                 Text(
                   AppStrings.profileRoleStudent,
-                  style: AppStyles.labelS.copyWith(color: AppColors.primary),
+                  style: AppStyles.labelS.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
@@ -228,7 +249,7 @@ class StudentProfileScreen extends StatelessWidget {
           onTap: () => Get.toNamed(AppRoutes.chatbot),
         ),
 
-        SizedBox(height: 8.h),
+        SizedBox(height: 12.h),
 
         // Ganti Password
         _SettingsTile(
@@ -237,7 +258,7 @@ class StudentProfileScreen extends StatelessWidget {
           onTap: () => _showChangePasswordDialog(authController),
         ),
 
-        SizedBox(height: 8.h),
+        SizedBox(height: 12.h),
 
         // Logout
         _SettingsTile(
@@ -474,44 +495,51 @@ class _SettingsTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(14.w),
+        padding: EdgeInsets.all(16.w),
         decoration: AppStyles.cardDecorationLight,
         child: Row(
           children: [
             // Icon container
             Container(
-              width: 40.w,
-              height: 40.h,
+              width: 44.w,
+              height: 44.h,
               decoration: BoxDecoration(
                 color: iconBg,
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(12.r),
               ),
-              child: Icon(icon, color: iconColor, size: 20.sp),
+              child: Icon(icon, color: iconColor, size: 22.sp),
             ),
-            SizedBox(width: 14.w),
+            SizedBox(width: 16.w),
             // Title + subtitle
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: AppStyles.labelL.copyWith(color: color)),
+                  Text(title, style: AppStyles.labelL.copyWith(color: color, fontSize: 15.sp)),
                   if (subtitle != null) ...[
-                    SizedBox(height: 2.h),
+                    SizedBox(height: 4.h),
                     Text(
                       subtitle!,
                       style: AppStyles.bodyS.copyWith(
                         color: AppColors.textSecondary,
-                        fontSize: 11.sp,
+                        fontSize: 12.sp,
                       ),
                     ),
                   ],
                 ],
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 14.sp,
-              color: isDestructive ? AppColors.error : AppColors.textTertiary,
+            Container(
+              padding: EdgeInsets.all(6.w),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceSecondary,
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 12.sp,
+                color: isDestructive ? AppColors.error : AppColors.textTertiary,
+              ),
             ),
           ],
         ),

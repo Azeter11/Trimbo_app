@@ -151,12 +151,13 @@ class AppStyles {
   /// Dekorasi card standar
   static BoxDecoration get cardDecoration => BoxDecoration(
         color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 12,
+            color: AppColors.shadow.withOpacity(0.06),
+            blurRadius: 16,
             offset: const Offset(0, 4),
+            spreadRadius: 0,
           ),
         ],
       );
@@ -164,7 +165,7 @@ class AppStyles {
   /// Dekorasi card ringan (tanpa shadow besar)
   static BoxDecoration get cardDecorationLight => BoxDecoration(
         color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: AppColors.border, width: 1),
       );
 
@@ -192,26 +193,26 @@ class AppStyles {
         ),
         contentPadding: EdgeInsets.symmetric(
           horizontal: 16.w,
-          vertical: 16.h,
+          vertical: 18.h,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: AppColors.border),
+          borderRadius: BorderRadius.circular(14.r),
+          borderSide: BorderSide(color: AppColors.border, width: 1.5),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: AppColors.border),
+          borderRadius: BorderRadius.circular(14.r),
+          borderSide: BorderSide(color: AppColors.border, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(14.r),
           borderSide: BorderSide(color: AppColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: AppColors.error),
+          borderRadius: BorderRadius.circular(14.r),
+          borderSide: BorderSide(color: AppColors.error, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(14.r),
           borderSide: BorderSide(color: AppColors.error, width: 2),
         ),
       );
@@ -244,12 +245,15 @@ class AppStyles {
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: AppColors.textOnPrimary,
-            minimumSize: Size(double.infinity, 52.h),
+            minimumSize: Size(double.infinity, 56.h),
+            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            elevation: 0,
+            shadowColor: AppColors.primary.withOpacity(0.3),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(16.r),
             ),
             textStyle: GoogleFonts.inter(
-              fontSize: 15.sp,
+              fontSize: 16.sp,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -257,10 +261,15 @@ class AppStyles {
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primary,
-            side: BorderSide(color: AppColors.primary),
-            minimumSize: Size(double.infinity, 52.h),
+            side: BorderSide(color: AppColors.border, width: 1.5),
+            minimumSize: Size(double.infinity, 56.h),
+            padding: EdgeInsets.symmetric(horizontal: 24.w),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(16.r),
+            ),
+            textStyle: GoogleFonts.inter(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),

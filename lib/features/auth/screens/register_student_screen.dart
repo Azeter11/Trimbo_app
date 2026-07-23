@@ -96,17 +96,22 @@ class RegisterStudentScreen extends StatelessWidget {
       children: [
         // Mini logo
         Container(
-          width: 56.w,
-          height: 56.h,
+          width: 64.w,
+          height: 64.h,
           margin: EdgeInsets.only(bottom: 24.h),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.primary, AppColors.secondary],
-            ),
-            borderRadius: BorderRadius.circular(16.r),
+            gradient: AppColors.primaryGradient,
+            borderRadius: BorderRadius.circular(20.r),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(16.r),
+            borderRadius: BorderRadius.circular(20.r),
             child: Image.asset(
               'assets/icons/TrimboIcon.png',
               fit: BoxFit.cover,
@@ -116,25 +121,25 @@ class RegisterStudentScreen extends StatelessWidget {
 
         // Badge role
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
           decoration: BoxDecoration(
             color: AppColors.primaryLight,
-            borderRadius: BorderRadius.circular(20.r),
+            borderRadius: BorderRadius.circular(24.r),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.person_rounded, size: 16.sp, color: AppColors.primary),
-              SizedBox(width: 6.w),
+              SizedBox(width: 8.w),
               Text(
                 'Akun Siswa',
-                style: AppStyles.labelS.copyWith(color: AppColors.primary),
+                style: AppStyles.labelS.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600),
               ),
             ],
           ),
         ),
 
-        SizedBox(height: 12.h),
+        SizedBox(height: 16.h),
 
         Text(AppStrings.registerTitle, style: AppStyles.headingL),
 

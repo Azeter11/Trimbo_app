@@ -393,19 +393,19 @@ class _AssignmentCard extends StatelessWidget {
                 ),
                 // Badge status
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                   decoration: BoxDecoration(
                     color: status.bgColor,
-                    borderRadius: BorderRadius.circular(6.r),
+                    borderRadius: BorderRadius.circular(10.r),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(status.icon, size: 12.sp, color: status.color),
-                      SizedBox(width: 4.w),
+                      Icon(status.icon, size: 14.sp, color: status.color),
+                      SizedBox(width: 6.w),
                       Text(
                         status.text,
-                        style: AppStyles.labelS.copyWith(color: status.color),
+                        style: AppStyles.labelS.copyWith(color: status.color, fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),

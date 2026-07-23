@@ -41,17 +41,18 @@ class PrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: width ?? double.infinity,
-      height: height ?? 52.h,
+      height: height ?? 56.h,
       child: ElevatedButton(
         // onPressed null = tombol disabled (abu-abu otomatis)
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor ?? AppColors.primary,
           disabledBackgroundColor: AppColors.textTertiary,
+          shadowColor: (backgroundColor ?? AppColors.primary).withOpacity(0.3),
+          elevation: 4,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(16.r),
           ),
-          elevation: 0,
         ),
         child: isLoading
             // Tampilkan spinner saat loading
@@ -71,8 +72,8 @@ class PrimaryButton extends StatelessWidget {
                     leading!,
                     SizedBox(width: 8.w),
                   ] else if (leadingIcon != null) ...[
-                    Icon(leadingIcon, size: 18.sp, color: AppColors.textOnPrimary),
-                    SizedBox(width: 8.w),
+                    Icon(leadingIcon, size: 20.sp, color: AppColors.textOnPrimary),
+                    SizedBox(width: 10.w),
                   ],
                   Text(
                     text,
@@ -122,19 +123,20 @@ class OutlineButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Warna default dari parameter atau warna primer
-    final effectiveBorderColor = borderColor ?? AppColors.primary;
+    final effectiveBorderColor = borderColor ?? AppColors.border;
     final effectiveTextColor = textColor ?? AppColors.primary;
 
     return SizedBox(
       width: width ?? double.infinity,
-      height: height ?? 52.h,
+      height: height ?? 56.h,
       child: OutlinedButton(
         onPressed: isLoading ? null : onPressed,
         style: OutlinedButton.styleFrom(
           side: BorderSide(color: effectiveBorderColor, width: 1.5),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(16.r),
           ),
+          padding: EdgeInsets.symmetric(horizontal: 24.w),
         ),
         child: isLoading
             ? SizedBox(
@@ -152,14 +154,20 @@ class OutlineButton extends StatelessWidget {
                     leading!,
                     SizedBox(width: 8.w),
                   ] else if (leadingIcon != null) ...[
-                    Icon(leadingIcon, size: 18.sp, color: effectiveTextColor),
-                    SizedBox(width: 8.w),
+                    Icon(leadingIcon, size: 20.sp, color: effectiveTextColor),
+                    SizedBox(width: 10.w),
                   ],
-                  Text(
-                    text,
-                    style: AppStyles.buttonText.copyWith(
-                      color: effectiveTextColor,
-                      fontSize: fontSize,
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        text,
+                        style: AppStyles.buttonText.copyWith(
+                          color: effectiveTextColor,
+                          fontSize: fontSize,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -233,16 +241,23 @@ class CircleIconButton extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        width: size ?? 44.w,
-        height: size ?? 44.h,
+        width: size ?? 48.w,
+        height: size ?? 48.h,
         decoration: BoxDecoration(
           color: backgroundColor ?? AppColors.primaryLight,
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadow.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Icon(
           icon,
           color: iconColor ?? AppColors.primary,
-          size: (size != null ? size! * 0.45 : 20).sp,
+          size: (size != null ? size! * 0.45 : 22).sp,
         ),
       ),
     );

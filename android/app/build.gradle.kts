@@ -53,8 +53,13 @@ android {
 
     buildTypes {
         getByName("release") {
-            // Ini yang menghubungkan kunci rilis ke proses build
-            signingConfig = signingConfigs.getByName("release")
+            // Gunakan release signing config jika key.properties ada,
+            // jika tidak ada, fallback ke debug signing agar build tidak crash dengan NullPointerException.
+            if (keystorePropertiesFile.exists() && keystoreProperties.getProperty("storeFile") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                signingConfig = signingConfigs.getByName("debug")
+            }
         }
     }
 

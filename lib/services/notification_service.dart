@@ -247,15 +247,25 @@ class NotificationService {
   // ========================
 
   /// Mengirim notifikasi menggunakan FCM HTTP Legacy API
-  /// Catatan: Anda perlu mengganti 'YOUR_SERVER_KEY' dengan Server Key dari Firebase Console > Project Settings > Cloud Messaging
+  ///
+  /// ⚠️  PERHATIAN: Legacy FCM HTTP API sudah DEPRECATED oleh Google (Juni 2024).
+  ///     Disarankan migrasi ke FCM HTTP v1 API menggunakan OAuth2.
+  ///
+  /// Untuk mendapatkan Server Key (BUKAN API Key biasa):
+  ///   Firebase Console → Project Settings → Cloud Messaging → Server key
+  ///
+  /// CATATAN: 'AIzaSy...' di bawah ini adalah Firebase API Key (SALAH).
+  ///   Server Key formatnya berbeda, biasanya dimulai dengan 'AAAA...'.
   Future<void> sendNotificationToTopic({
     required String topic,
     required String title,
     required String body,
   }) async {
     try {
-      // GANTI DENGAN SERVER KEY FIREBASE ANDA
-      const String serverKey = 'AIzaSyCe4VgOYaoI7RXBng8SsRtpS4z-ImrIajo';
+      // ⚠️  GANTI DENGAN SERVER KEY FCM YANG BENAR
+      // Ambil dari: Firebase Console → Project Settings → Cloud Messaging → Server key
+      // BUKAN Firebase API Key ('AIzaSy...') — keduanya berbeda!
+      const String serverKey = 'GANTI_DENGAN_FCM_SERVER_KEY_DARI_FIREBASE_CONSOLE';
 
       final response = await http.post(
         Uri.parse('https://fcm.googleapis.com/fcm/send'),

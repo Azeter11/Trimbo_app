@@ -128,12 +128,12 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     final photoUrl = user?.photoUrl; // Ambil URL foto profil
 
     return Container(
-      padding: EdgeInsets.fromLTRB(24.w, 56.h, 24.w, 24.h),
+      padding: EdgeInsets.fromLTRB(24.w, 56.h, 24.w, 32.h),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.secondary],
+        gradient: AppColors.primaryGradient,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
         ),
       ),
       child: Row(
@@ -144,17 +144,25 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
               children: [
                 Text(
                   AppStrings.studentDashboardGreeting,
-                  style: AppStyles.bodyM.copyWith(color: Colors.white70),
-                ),
-                Text(
-                  userName.split(' ').first, // Tampilkan nama depan saja
-                  style: AppStyles.headingL.copyWith(color: Colors.white),
-                  overflow: TextOverflow.ellipsis,
+                  style: AppStyles.bodyM.copyWith(color: Colors.white.withOpacity(0.8)),
                 ),
                 SizedBox(height: 4.h),
                 Text(
+                  userName.split(' ').first, // Tampilkan nama depan saja
+                  style: AppStyles.headingL.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 26.sp,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 6.h),
+                Text(
                   AppStrings.studentDashboardSubtitle,
-                  style: AppStyles.bodyS.copyWith(color: Colors.white60),
+                  style: AppStyles.bodyS.copyWith(
+                    color: Colors.white.withOpacity(0.7),
+                    fontSize: 13.sp,
+                  ),
                 ),
               ],
             ),
@@ -164,12 +172,19 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
           GestureDetector(
             onTap: () => Get.toNamed(AppRoutes.studentProfile),
             child: Container(
-              width: 48.w,
-              height: 48.h,
+              width: 52.w,
+              height: 52.h,
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.2),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white30, width: 2),
+                border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryDark.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               // Cek apakah user sudah punya foto profil
               child: (photoUrl != null && photoUrl.isNotEmpty)
@@ -177,14 +192,17 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                 child: Image.network(
                   photoUrl,
                   fit: BoxFit.cover,
-                  width: 48.w,
-                  height: 48.h,
+                  width: 52.w,
+                  height: 52.h,
                   // Jika gambar gagal dimuat, kembalikan ke inisial nama
                   errorBuilder: (context, error, stackTrace) {
                     return Center(
                       child: Text(
                         initials,
-                        style: AppStyles.headingS.copyWith(color: Colors.white),
+                        style: AppStyles.headingS.copyWith(
+                          color: Colors.white,
+                          fontSize: 20.sp,
+                        ),
                       ),
                     );
                   },
@@ -194,7 +212,10 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                   : Center(
                 child: Text(
                   initials,
-                  style: AppStyles.headingS.copyWith(color: Colors.white),
+                  style: AppStyles.headingS.copyWith(
+                    color: Colors.white,
+                    fontSize: 20.sp,
+                  ),
                 ),
               ),
             ),
@@ -208,7 +229,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   /// Widget 3 shortcut card: Kelas, Tugas, Nilai.
   Widget _buildShortcutCards(StudentController controller) {
     return Padding(
-      padding: EdgeInsets.all(20.w),
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
       child: Row(
         children: [
           // Kelas Saya
@@ -279,28 +300,43 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.alarm_rounded, size: 18.sp, color: AppColors.warning),
-              SizedBox(width: 8.w),
+              Container(
+                padding: EdgeInsets.all(8.w),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Icon(Icons.alarm_rounded, size: 18.sp, color: AppColors.warning),
+              ),
+              SizedBox(width: 12.w),
               Text(AppStrings.upcomingDeadlines, style: AppStyles.headingS),
             ],
           ),
 
-          SizedBox(height: 12.h),
+          SizedBox(height: 16.h),
 
           if (upcoming.isEmpty)
             Container(
-              padding: EdgeInsets.all(16.w),
+              padding: EdgeInsets.all(20.w),
               decoration: AppStyles.cardDecorationLight,
               child: Row(
                 children: [
-                  Icon(Icons.check_circle_outline_rounded,
-                      color: AppColors.success, size: 20.sp),
-                  SizedBox(width: 10.w),
+                  Container(
+                    padding: EdgeInsets.all(8.w),
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    child: Icon(Icons.check_circle_outline_rounded,
+                        color: AppColors.success, size: 20.sp),
+                  ),
+                  SizedBox(width: 12.w),
                   Expanded(
                     child: Text(
                       AppStrings.noUpcomingDeadlines,
                       style: AppStyles.bodyM.copyWith(
                         color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -315,7 +351,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
               onTap: () => controller.openExam(assignment),
             )),
 
-          SizedBox(height: 8.h),
+          SizedBox(height: 16.h),
         ],
       ),
     );
@@ -328,35 +364,50 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 12.h),
+          SizedBox(height: 8.h),
           Row(
             children: [
-              Icon(Icons.school_rounded, size: 18.sp, color: AppColors.primary),
-              SizedBox(width: 8.w),
+              Container(
+                padding: EdgeInsets.all(8.w),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Icon(Icons.school_rounded, size: 18.sp, color: AppColors.primary),
+              ),
+              SizedBox(width: 12.w),
               Text('Kelas Saya', style: AppStyles.headingS),
             ],
           ),
 
-          SizedBox(height: 12.h),
+          SizedBox(height: 16.h),
 
           if (controller.myClasses.isEmpty)
             Center(
               child: Column(
                 children: [
-                  SizedBox(height: 20.h),
-                  Icon(Icons.class_outlined,
-                      size: 48.sp, color: AppColors.textTertiary),
-                  SizedBox(height: 12.h),
+                  SizedBox(height: 24.h),
+                  Container(
+                    padding: EdgeInsets.all(24.w),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.class_outlined,
+                        size: 48.sp, color: AppColors.primary.withOpacity(0.5)),
+                  ),
+                  SizedBox(height: 16.h),
                   Text(
                     'Belum ada kelas',
                     style: AppStyles.bodyM.copyWith(
                       color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: 6.h),
                   Text(
-                    'Tekan + untuk bergabung ke kelas',
-                    style: AppStyles.bodyS,
+                    'Tekan tombol + di bawah untuk bergabung ke kelas',
+                    style: AppStyles.bodyS.copyWith(fontSize: 12.sp),
                   ),
                 ],
               ),
@@ -366,6 +417,8 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
               classData: classData,
               onTap: () => controller.openClassDetail(classData),
             )),
+          
+          SizedBox(height: 24.h),
         ],
       ),
     );
@@ -396,15 +449,15 @@ class _ShortcutCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(12.w),
+        padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 8.w),
         decoration: BoxDecoration(
           color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(20.r),
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadow,
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: color.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -412,26 +465,32 @@ class _ShortcutCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40.w,
-              height: 40.h,
+              width: 48.w,
+              height: 48.h,
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(14.r),
               ),
-              child: Icon(icon, color: color, size: 20.sp),
+              child: Icon(icon, color: color, size: 24.sp),
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: 12.h),
             FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
                 value,
-                style: AppStyles.headingM.copyWith(color: color),
+                style: AppStyles.headingM.copyWith(
+                  color: color,
+                  fontSize: 20.sp,
+                ),
               ),
             ),
-            SizedBox(height: 2.h),
+            SizedBox(height: 4.h),
             Text(
               label,
-              style: AppStyles.bodyS.copyWith(fontSize: 10.sp),
+              style: AppStyles.bodyS.copyWith(
+                fontSize: 11.sp,
+                fontWeight: FontWeight.w500,
+              ),
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -454,31 +513,42 @@ class _DeadlineCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: EdgeInsets.only(bottom: 8.h),
-        padding: EdgeInsets.all(14.w),
+        margin: EdgeInsets.only(bottom: 12.h),
+        padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: AppColors.warningLight,
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+          borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(color: AppColors.warning.withOpacity(0.2), width: 1),
         ),
         child: Row(
           children: [
-            Icon(Icons.assignment_late_rounded,
-                color: AppColors.warning, size: 20.sp),
-            SizedBox(width: 12.w),
+            Container(
+              padding: EdgeInsets.all(8.w),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Icon(Icons.assignment_late_rounded,
+                  color: AppColors.warning, size: 20.sp),
+            ),
+            SizedBox(width: 16.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     assignment.title,
-                    style: AppStyles.labelL,
+                    style: AppStyles.labelL.copyWith(fontSize: 15.sp),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  SizedBox(height: 4.h),
                   Text(
                     'Deadline: ${Helpers.getTimeRemaining(assignment.deadline)}',
-                    style: AppStyles.bodyS.copyWith(color: AppColors.warning),
+                    style: AppStyles.bodyS.copyWith(
+                      color: AppColors.warning,
+                      fontWeight: FontWeight.w600,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -511,37 +581,45 @@ class _ClassCard extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 48.w,
-              height: 48.h,
+              width: 52.w,
+              height: 52.h,
               decoration: BoxDecoration(
                 color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(14.r),
               ),
               child: Icon(Icons.class_rounded,
                   color: AppColors.primary, size: 24.sp),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: 16.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     classData.name,
-                    style: AppStyles.labelL,
+                    style: AppStyles.labelL.copyWith(fontSize: 15.sp),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  SizedBox(height: 4.h),
                   Text(
                     'Oleh ${classData.teacherName}',
-                    style: AppStyles.bodyS,
+                    style: AppStyles.bodyS.copyWith(fontSize: 12.sp),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded,
-                size: 14.sp, color: AppColors.textTertiary),
+            Container(
+              padding: EdgeInsets.all(8.w),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceSecondary,
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              child: Icon(Icons.arrow_forward_ios_rounded,
+                  size: 14.sp, color: AppColors.textTertiary),
+            ),
           ],
         ),
       ),

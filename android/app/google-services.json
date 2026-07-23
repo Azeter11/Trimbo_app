@@ -15,11 +15,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "316116460437-8jbthdg1ui81bo22vo0if9fuu1oc00qq.apps.googleusercontent.com",
+          "client_id": "316116460437-kmjh95fj88n3nte1glkmkn4n5poren90.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.trimbo.app",
-            "certificate_hash": "106c43bba1f1e8380457cdd685925b2e81ddc6da"
+            "certificate_hash": "9c10bb6a2d4244e15c63603e28d25f77ea67028d"
           }
         },
         {
